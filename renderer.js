@@ -7,6 +7,12 @@ let deviceScale = 1;
 let time = 0;
 let smoothedLevel = 0.24;
 let incomingLevel = 0.24;
+let latestSource = "waiting";
+let bridgeMode = "unknown";
+let bridgeReason = "Waiting for bridge status...";
+let lastPayloadValue = 0.24;
+let debugPanel;
+let lastDebugPaintAt = 0;
 
 const THEMES = {
   blue: {
@@ -39,6 +45,62 @@ const params = new URLSearchParams(window.location.search);
 const themeName = params.get("theme") || "blue";
 const theme = THEMES[themeName] || THEMES.blue;
 
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function createDebugPanel() {
+  debugPanel = document.createElement("div");
+  debugPanel.id = "debug-panel";
+  debugPanel.style.position = "fixed";
+  debugPanel.style.top = "16px";
+  debugPanel.style.left = "16px";
+  debugPanel.style.padding = "10px 12px";
+  debugPanel.style.border = "1px solid rgba(255, 255, 255, 0.16)";
+  debugPanel.style.borderRadius = "10px";
+  debugPanel.style.background = "rgba(8, 12, 20, 0.42)";
+  debugPanel.style.color = "rgba(225, 240, 255, 0.92)";
+  debugPanel.style.font = "12px/1.45 Consolas, monospace";
+  debugPanel.style.whiteSpace = "pre-line";
+  debugPanel.style.pointerEvents = "none";
+  debugPanel.style.zIndex = "9999";
+  debugPanel.style.backdropFilter = "blur(10px)";
+  debugPanel.textContent = "TEMP DEBUG\nWaiting for audio bridge...";
+  document.body.appendChild(debugPanel);
+}
+
+function paintDebugPanel(now) {
+  if (!debugPanel || now - lastDebugPaintAt < 120) {
+    return;
+  }
+
+  lastDebugPaintAt = now;
+  debugPanel.textContent =
+    "TEMP DEBUG\n" +
+    `bridge: ${bridgeMode}\n` +
+    `source: ${latestSource}\n` +
+    `incoming: ${lastPayloadValue.toFixed(4)}\n` +
+    `smoothed: ${smoothedLevel.toFixed(4)}\n` +
+    `reason: ${bridgeReason}`;
+}
+
+async function refreshBridgeStatus() {
+  if (!window.audioBridge || typeof window.audioBridge.getStatus !== "function") {
+    bridgeMode = "unavailable";
+    bridgeReason = "window.audioBridge.getStatus is unavailable.";
+    return;
+  }
+
+  try {
+    const status = await window.audioBridge.getStatus();
+    bridgeMode = status?.mode || "unknown";
+    bridgeReason = status?.reason || "No bridge reason provided.";
+  } catch (error) {
+    bridgeMode = "status-error";
+    bridgeReason = error?.message || "Failed to read bridge status.";
+  }
+}
+
 function resizeCanvas() {
   deviceScale = window.devicePixelRatio || 1;
   width = window.innerWidth;
@@ -50,8 +112,10 @@ function resizeCanvas() {
 }
 
 function updateAudioLevel(now) {
-  const breathing = 0.028 * (Math.sin(now * 0.00023) + 1);
-  smoothedLevel += ((incomingLevel + breathing) - smoothedLevel) * 0.018;
+  const helperDriven = latestSource === "helper";
+  const breathing = helperDriven ? 0.003 : 0.028 * (Math.sin(now * 0.00023) + 1);
+  const response = helperDriven ? 0.2 : 0.018;
+  smoothedLevel += ((incomingLevel + breathing) - smoothedLevel) * response;
 }
 
 function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity) {
@@ -124,10 +188,11 @@ function renderFrame(now) {
   context.clearRect(0, 0, width, height);
   drawGlowBand();
 
-  const topBase = 62 + smoothedLevel * 14;
-  const bottomBase = height - 62 - smoothedLevel * 14;
-  const primaryAmplitude = 5 + smoothedLevel * 12;
-  const secondaryAmplitude = 2 + smoothedLevel * 6;
+  const helperDriven = latestSource === "helper";
+  const topBase = 62 + smoothedLevel * 18;
+  const bottomBase = height - 62 - smoothedLevel * 18;
+  const primaryAmplitude = helperDriven ? 8 + smoothedLevel * 38 : 5 + smoothedLevel * 12;
+  const secondaryAmplitude = helperDriven ? 3 + smoothedLevel * 16 : 2 + smoothedLevel * 6;
 
   drawSoftFill(topBase, primaryAmplitude * 1.1, 0.0075, 0.38, theme.topGlow, 44);
   drawSoftFill(bottomBase, primaryAmplitude * 0.9, 0.007, 0.32, theme.bottomGlow, 40);
@@ -140,6 +205,7 @@ function renderFrame(now) {
 
   context.globalAlpha = 1;
   context.shadowBlur = 0;
+  paintDebugPanel(now);
 
   requestAnimationFrame(renderFrame);
 }
@@ -149,10 +215,18 @@ window.addEventListener("resize", resizeCanvas);
 if (window.audioBridge) {
   window.audioBridge.onLevel((payload) => {
     if (payload && typeof payload.value === "number") {
-      incomingLevel = payload.value;
+      latestSource = payload.source || "unknown";
+      lastPayloadValue = payload.value;
+      incomingLevel = latestSource === "helper"
+        ? clamp01(payload.value * 3.2)
+        : clamp01(payload.value);
     }
   });
 }
+
+createDebugPanel();
+refreshBridgeStatus();
+setInterval(refreshBridgeStatus, 1000);
 
 resizeCanvas();
 requestAnimationFrame(renderFrame);
