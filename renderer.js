@@ -1,6 +1,10 @@
 const canvas = document.getElementById("visualizer");
 const context = canvas.getContext("2d");
 
+const TARGET_FPS = 36;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+const MAX_DEVICE_SCALE = 1.25;
+
 let width = 0;
 let height = 0;
 let deviceScale = 1;
@@ -13,6 +17,8 @@ let bridgeReason = "Waiting for bridge status...";
 let lastPayloadValue = 0.24;
 let debugPanel;
 let lastDebugPaintAt = 0;
+let lastFrameAt = 0;
+let edgeGradient;
 
 const THEMES = {
   blue: {
@@ -44,12 +50,26 @@ const THEMES = {
 const params = new URLSearchParams(window.location.search);
 const themeName = params.get("theme") || "blue";
 const theme = THEMES[themeName] || THEMES.blue;
+const debugEnabled = params.get("debug") === "1";
 
 function clamp01(value) {
   return Math.max(0, Math.min(1, value));
 }
 
+function rebuildCachedPaint() {
+  edgeGradient = context.createLinearGradient(0, 0, 0, height);
+  edgeGradient.addColorStop(0, theme.hazeTop);
+  edgeGradient.addColorStop(0.16, "rgba(0, 0, 0, 0)");
+  edgeGradient.addColorStop(0.5, "rgba(0, 0, 0, 0)");
+  edgeGradient.addColorStop(0.84, "rgba(0, 0, 0, 0)");
+  edgeGradient.addColorStop(1, theme.hazeBottom);
+}
+
 function createDebugPanel() {
+  if (!debugEnabled) {
+    return;
+  }
+
   debugPanel = document.createElement("div");
   debugPanel.id = "debug-panel";
   debugPanel.style.position = "fixed";
@@ -70,7 +90,7 @@ function createDebugPanel() {
 }
 
 function paintDebugPanel(now) {
-  if (!debugPanel || now - lastDebugPaintAt < 120) {
+  if (!debugEnabled || !debugPanel || now - lastDebugPaintAt < 250) {
     return;
   }
 
@@ -85,6 +105,10 @@ function paintDebugPanel(now) {
 }
 
 async function refreshBridgeStatus() {
+  if (!debugEnabled) {
+    return;
+  }
+
   if (!window.audioBridge || typeof window.audioBridge.getStatus !== "function") {
     bridgeMode = "unavailable";
     bridgeReason = "window.audioBridge.getStatus is unavailable.";
@@ -102,13 +126,14 @@ async function refreshBridgeStatus() {
 }
 
 function resizeCanvas() {
-  deviceScale = window.devicePixelRatio || 1;
+  deviceScale = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_SCALE);
   width = window.innerWidth;
   height = window.innerHeight;
 
   canvas.width = Math.floor(width * deviceScale);
   canvas.height = Math.floor(height * deviceScale);
   context.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+  rebuildCachedPaint();
 }
 
 function updateAudioLevel(now) {
@@ -119,11 +144,15 @@ function updateAudioLevel(now) {
 }
 
 function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity) {
+  const step = 20;
+  const phaseA = time * speed;
+  const phaseB = time * speed * 0.52;
+
   context.beginPath();
 
-  for (let x = 0; x <= width; x += 14) {
-    const waveA = Math.sin(x * frequency + time * speed);
-    const waveB = Math.sin(x * frequency * 0.42 - time * speed * 0.52);
+  for (let x = 0; x <= width; x += step) {
+    const waveA = Math.sin(x * frequency + phaseA);
+    const waveB = Math.sin(x * frequency * 0.42 - phaseB);
     const lift = (waveA + waveB) * amplitude;
     const y = yBase + lift;
 
@@ -137,37 +166,29 @@ function drawWave(yBase, amplitude, frequency, speed, color, lineWidth, opacity)
   context.strokeStyle = color;
   context.lineWidth = lineWidth;
   context.globalAlpha = opacity;
-  context.shadowBlur = 22 + amplitude * 0.45;
+  context.shadowBlur = opacity > 0.5 ? 12 + amplitude * 0.22 : 0;
   context.shadowColor = color;
   context.stroke();
 }
 
 function drawGlowBand() {
-  const edgeFade = context.createLinearGradient(0, 0, 0, height);
-  edgeFade.addColorStop(0, theme.hazeTop);
-  edgeFade.addColorStop(0.16, "rgba(0, 0, 0, 0)");
-  edgeFade.addColorStop(0.5, "rgba(0, 0, 0, 0)");
-  edgeFade.addColorStop(0.84, "rgba(0, 0, 0, 0)");
-  edgeFade.addColorStop(1, theme.hazeBottom);
-
   context.globalAlpha = 1;
   context.shadowBlur = 0;
-  context.fillStyle = edgeFade;
+  context.fillStyle = edgeGradient;
   context.fillRect(0, 0, width, height);
 }
 
 function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness) {
-  const gradient = context.createLinearGradient(0, yBase - thickness, 0, yBase + thickness);
-  gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-  gradient.addColorStop(0.5, color);
-  gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+  const step = 24;
+  const phaseA = time * speed;
+  const phaseB = time * speed * 0.45;
 
   context.beginPath();
   context.moveTo(0, yBase);
 
-  for (let x = 0; x <= width; x += 18) {
-    const waveA = Math.sin(x * frequency + time * speed);
-    const waveB = Math.sin(x * frequency * 0.35 - time * speed * 0.45);
+  for (let x = 0; x <= width; x += step) {
+    const waveA = Math.sin(x * frequency + phaseA);
+    const waveB = Math.sin(x * frequency * 0.35 - phaseB);
     context.lineTo(x, yBase + (waveA + waveB) * amplitude);
   }
 
@@ -177,28 +198,31 @@ function drawSoftFill(yBase, amplitude, frequency, speed, color, thickness) {
 
   context.globalAlpha = 1;
   context.shadowBlur = 0;
-  context.fillStyle = gradient;
+  context.fillStyle = color;
   context.fill();
 }
 
 function renderFrame(now) {
-  time += 0.016;
+  requestAnimationFrame(renderFrame);
+
+  if (lastFrameAt && now - lastFrameAt < FRAME_INTERVAL) {
+    return;
+  }
+
+  const deltaMs = lastFrameAt ? now - lastFrameAt : FRAME_INTERVAL;
+  lastFrameAt = now;
+
+  time += deltaMs * 0.001;
   updateAudioLevel(now);
 
   context.clearRect(0, 0, width, height);
   drawGlowBand();
 
   const helperDriven = latestSource === "helper";
-  const topBase = 62 + smoothedLevel * 18;
   const bottomBase = height - 62 - smoothedLevel * 18;
   const primaryAmplitude = helperDriven ? 8 + smoothedLevel * 38 : 5 + smoothedLevel * 12;
   const secondaryAmplitude = helperDriven ? 3 + smoothedLevel * 16 : 2 + smoothedLevel * 6;
-
-  drawSoftFill(topBase, primaryAmplitude * 1.1, 0.0075, 0.38, theme.topGlow, 44);
   drawSoftFill(bottomBase, primaryAmplitude * 0.9, 0.007, 0.32, theme.bottomGlow, 40);
-
-  drawWave(topBase, primaryAmplitude, 0.0105, 0.44, theme.topLine, 1.4, 0.8);
-  drawWave(topBase + 8, secondaryAmplitude, 0.014, 0.58, theme.topGlow, 1, 0.34);
 
   drawWave(bottomBase, primaryAmplitude * 0.9, 0.0102, 0.34, theme.bottomLine, 1.25, 0.68);
   drawWave(bottomBase - 8, secondaryAmplitude, 0.013, 0.48, theme.bottomGlow, 0.9, 0.28);
@@ -206,8 +230,6 @@ function renderFrame(now) {
   context.globalAlpha = 1;
   context.shadowBlur = 0;
   paintDebugPanel(now);
-
-  requestAnimationFrame(renderFrame);
 }
 
 window.addEventListener("resize", resizeCanvas);
@@ -226,7 +248,9 @@ if (window.audioBridge) {
 
 createDebugPanel();
 refreshBridgeStatus();
-setInterval(refreshBridgeStatus, 1000);
+if (debugEnabled) {
+  setInterval(refreshBridgeStatus, 1000);
+}
 
 resizeCanvas();
 requestAnimationFrame(renderFrame);
