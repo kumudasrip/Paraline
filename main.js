@@ -179,28 +179,192 @@ function buildMainThemeMenuItems() {
   }));
 }
 
-function buildSensitivityMenuItems() {
-  const options = [
-    { label: "Low", value: 2 },
-    { label: "Medium", value: 3.2 },
-    { label: "High", value: 4.8 }
+function buildAmbientWaveMenuItems() {
+  const ambientSettings = visualizerSettings.ambientWave;
+
+  return [
+    {
+      label: "Ambient Wave Settings",
+      enabled: false
+    },
+    {
+      label: "Tone",
+      submenu: [
+        { label: "Blue", value: "blue" },
+        { label: "Purple", value: "purple" },
+        { label: "Warm", value: "warm" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: ambientSettings.tone === option.value,
+        click: () => updateSettings({ ambientWave: { tone: option.value } })
+      }))
+    },
+    {
+      label: "Sensitivity",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: ambientSettings.sensitivity === level,
+        click: () => updateSettings({ ambientWave: { sensitivity: level } })
+      }))
+    },
+    {
+      label: "Edge Mode",
+      submenu: ["top", "bottom", "both"].map((edgeMode) => ({
+        label: edgeMode[0].toUpperCase() + edgeMode.slice(1),
+        type: "radio",
+        checked: ambientSettings.edgeMode === edgeMode,
+        click: () => updateSettings({ ambientWave: { edgeMode } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: ["soft", "medium", "strong"].map((strength) => ({
+        label: strength[0].toUpperCase() + strength.slice(1),
+        type: "radio",
+        checked: ambientSettings.glowStrength === strength,
+        click: () => updateSettings({ ambientWave: { glowStrength: strength } })
+      }))
+    }
   ];
 
-  return options.map((option) => ({
-    label: option.label,
-    type: "radio",
-    checked: visualizerSettings.sensitivity === option.value,
-    click: () => updateSettings({ sensitivity: option.value })
-  }));
+function buildReactiveBorderMenuItems() {
+  const reactiveSettings = visualizerSettings.reactiveBorder;
+
+  return [
+    {
+      label: "Reactive Border Settings",
+      enabled: false
+    },
+    {
+      label: "Color Style",
+      submenu: [
+        { label: "Rainbow", value: "rainbow" },
+        { label: "Neon Blue", value: "neonBlue" },
+        { label: "Neon Purple", value: "neonPurple" },
+        { label: "Warm Glow", value: "warmGlow" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: reactiveSettings.colorStyle === option.value,
+        click: () => updateSettings({ reactiveBorder: { colorStyle: option.value } })
+      }))
+    },
+    {
+      label: "Intensity",
+      submenu: ["low", "medium", "high"].map((level) => ({
+        label: level[0].toUpperCase() + level.slice(1),
+        type: "radio",
+        checked: reactiveSettings.intensity === level,
+        click: () => updateSettings({ reactiveBorder: { intensity: level } })
+      }))
+    },
+    {
+      label: "Border Thickness",
+      submenu: [
+        { label: "Thin", value: "thin" },
+        { label: "Medium", value: "medium" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: reactiveSettings.borderThickness === option.value,
+        click: () => updateSettings({ reactiveBorder: { borderThickness: option.value } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: ["soft", "medium", "strong"].map((strength) => ({
+        label: strength[0].toUpperCase() + strength.slice(1),
+        type: "radio",
+        checked: reactiveSettings.glowStrength === strength,
+        click: () => updateSettings({ reactiveBorder: { glowStrength: strength } })
+      }))
+    }
+  ];
 }
 
-function buildEdgeModeMenuItems() {
-  return ["top", "bottom", "both"].map((edgeMode) => ({
-    label: edgeMode[0].toUpperCase() + edgeMode.slice(1),
-    type: "radio",
-    checked: visualizerSettings.edgeMode === edgeMode,
-    click: () => updateSettings({ edgeMode })
-  }));
+function buildFlowBorderMenuItems() {
+  const flowSettings = visualizerSettings.flowBorder;
+
+  return [
+    {
+      label: "Flow Border Settings",
+      enabled: false
+    },
+    {
+      label: "Direction",
+      submenu: [
+        { label: "Clockwise", value: "clockwise" },
+        { label: "Anticlockwise", value: "anticlockwise" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flowSettings.direction === option.value,
+        click: () => updateSettings({ flowBorder: { direction: option.value } })
+      }))
+    },
+    {
+      label: "Speed Mode",
+      submenu: [
+        { label: "Calm", value: "calm" },
+        { label: "Balanced", value: "balanced" },
+        { label: "Energetic", value: "energetic" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flowSettings.speedMode === option.value,
+        click: () => updateSettings({ flowBorder: { speedMode: option.value } })
+      }))
+    },
+    {
+      label: "Segment Length",
+      submenu: [
+        { label: "Short", value: "short" },
+        { label: "Medium", value: "medium" },
+        { label: "Long", value: "long" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flowSettings.segmentLength === option.value,
+        click: () => updateSettings({ flowBorder: { segmentLength: option.value } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: ["soft", "medium", "strong"].map((strength) => ({
+        label: strength[0].toUpperCase() + strength.slice(1),
+        type: "radio",
+        checked: flowSettings.glowStrength === strength,
+        click: () => updateSettings({ flowBorder: { glowStrength: strength } })
+      }))
+    },
+    {
+      label: "Color Style",
+      submenu: [
+        { label: "Rainbow", value: "rainbow" },
+        { label: "Cool", value: "cool" },
+        { label: "Warm", value: "warm" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: flowSettings.colorStyle === option.value,
+        click: () => updateSettings({ flowBorder: { colorStyle: option.value } })
+      }))
+    }
+  ];
+}
+
+function buildActiveThemeMenuItems() {
+  if (visualizerSettings.selectedTheme === "reactiveBorder") {
+    return buildReactiveBorderMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "flowBorder") {
+    return buildFlowBorderMenuItems();
+  }
+
+  return buildAmbientWaveMenuItems();
 }
 
 function refreshTrayMenu() {
