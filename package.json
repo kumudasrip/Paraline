@@ -1,12 +1,15 @@
 {
   "name": "paraline",
-  "version": "0.1.0",
-  "description": "Transparent Electron desktop overlay with a simulated ambient music visualizer.",
+  "version": "0.9.0",
+  "description": "Windows desktop audio visualizer with transparent edge-light overlays and real-time system audio capture.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "audio:helper:info": "powershell -NoProfile -Command \"Write-Output 'Build the helper with: dotnet build .\\audio-helper\\Paraline.AudioBridge.csproj'\""
+    "audio:helper:info": "powershell -NoProfile -Command \"Write-Output 'Build the helper with: dotnet build .\\audio-helper\\Paraline.AudioBridge.csproj'\"",
+    "build:helper": "dotnet publish .\\audio-helper\\Paraline.AudioBridge.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o .\\build\\audio-helper",
+    "pack:win": "npm run build:helper && electron-builder --dir --win nsis --x64",
+    "dist:win": "npm run build:helper && electron-builder --win nsis --x64"
   },
   "keywords": [
     "electron",
@@ -14,9 +17,57 @@
     "visualizer",
     "desktop"
   ],
-  "author": "",
+  "author": "SamXop123",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^37.0.0"
+    "electron": "^37.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.paraline.app",
+    "productName": "Paraline",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "preload.js",
+      "audioBridge.js",
+      "settingsStore.js",
+      "index.html",
+      "styles.css",
+      "package.json",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/audio-helper",
+        "to": "audio-helper",
+        "filter": [
+          "Paraline.AudioBridge.exe"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/appicon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Paraline"
+    }
   }
 }
