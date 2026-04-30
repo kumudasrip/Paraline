@@ -29,63 +29,46 @@ It transforms system audio into ambient waves, reactive borders, and flowing lig
 <table>
 <tr>
 <td align="center" width="33%">
-
-### Ambient Wave
-![Ambient Wave Preview](./previews/ambient-wave-preview.gif)
-
-</td>
-<td align="center" width="33%">
-
-### Reactive Border
-![Reactive Border Preview](./previews/reactive-border-preview.gif)
+<strong>Ambient Wave</strong><br/>
+<img src="./previews/ambient-wave-preview.svg" alt="Ambient Wave Preview" width="260"/>
 
 </td>
 <td align="center" width="33%">
+<strong>Reactive Border</strong><br/>
+<img src="./previews/reactive-border-preview.svg" alt="Reactive Border Preview" width="260"/>
 
-### Flow Border
-![Flow Border Preview](./previews/flow-border-preview.gif)
+</td>
+<td align="center" width="33%">
+<strong>Flow Border</strong><br/>
+<img src="./previews/flow-border-preview.svg" alt="Flow Border Preview" width="260"/>
 
 </td>
 </tr>
 <tr>
 <td align="center" width="33%">
-
-### Side Bars
-![Side Bars Preview](./previews/side-bars-preview.gif)
-
-</td>
-<td align="center" width="33%">
-
-### Pulse Lines
-![Pulse Lines Preview](./previews/pulse-lines-preview.gif)
+<strong>Side Bars</strong><br/>
+<img src="./previews/side-bars-preview.svg" alt="Side Bars Preview" width="260"/>
 
 </td>
 <td align="center" width="33%">
+<strong>Pulse Lines</strong><br/>
+<img src="./previews/pulse-lines-preview.svg" alt="Pulse Lines Preview" width="260"/>
 
-### Dot Particles
-![Dot Particles Preview](./previews/dot-particles-preview.gif)
+</td>
+<td align="center" width="33%">
+<strong>Dot Particles</strong><br/>
+<img src="./previews/dot-particles-preview.svg" alt="Dot Particles Preview" width="260"/>
 
 </td>
 </tr>
 <tr>
+<td></td>
 <td align="center" width="33%">
-
-### Ripple Flow
-![Ripple Flow Preview](./previews/ripple-flow-preview.gif)
+<strong>Ripple Flow</strong><br/>
+<img src="./previews/ripple-flow-preview.svg" alt="Ripple Flow Preview" width="260"/>
 
 </td>
-<td align="center" width="33%">
-
-### More Themes
-Add future previews here
-
-</td>
-<td align="center" width="33%">
-
-### More Themes
-Add future previews here
-
-</td>
+<td></td>
 </tr>
 </table>
 
