@@ -127,6 +127,9 @@ Renderer / Canvas Visualizer
 - `themes/rippleFlow.js`
   Ripple Flow rendering with center-origin wavefront propagation along screen edges.
 
+- `themes/snowBubbleParticles.js`
+  Snow Particles rendering with centered or full-width top-origin snowfall.
+
 - `preload.js`
   Safe Electron-to-renderer bridge.
 
@@ -190,6 +193,13 @@ The app uses one root selected theme plus nested settings per theme:
     "intensity": "medium",
     "sensitivity": "medium",
     "colorStyle": "blue"
+  },
+  "snowBubbleParticles": {
+    "fallArea": "middle",
+    "density": "medium",
+    "motionStyle": "balanced",
+    "glowStrength": "medium",
+    "particleSize": "medium"
   }
 }
 ```
@@ -217,7 +227,8 @@ Paraline/
 │   ├── sideBars.js
 │   ├── pulseLines.js
 │   ├── dotParticles.js
-│   └── rippleFlow.js
+│   ├── rippleFlow.js
+│   └── snowBubbleParticles.js
 ├── package.json
 ├── README.md
 ├── docs/
