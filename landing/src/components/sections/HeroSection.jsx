@@ -3,7 +3,7 @@ import EdgePulseFrame from "../EdgePulseFrame";
 
 const heroLines = ["Audio reactive", "Edge-native", "Built for Windows"];
 
-export default function HeroSection({ downloadUrl, isHostedInstaller }) {
+export default function HeroSection({ downloadUrl, isHostedInstaller, onDownloadClick }) {
   return (
     <section
       id="hero"
@@ -67,6 +67,7 @@ export default function HeroSection({ downloadUrl, isHostedInstaller }) {
             <a
               href={downloadUrl}
               download={isHostedInstaller ? undefined : "Paraline-Setup.exe"}
+              onClick={onDownloadClick}
               className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:scale-[1.02] hover:bg-cyan-100"
             >
               Download for Windows
