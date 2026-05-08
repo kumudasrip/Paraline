@@ -4,7 +4,8 @@ import ExperienceSection from "./components/sections/ExperienceSection";
 import ThemeShowcaseSection from "./components/sections/ThemeShowcaseSection";
 import CTASection from "./components/sections/CTASection";
 
-const downloadUrl = "/downloads/Paraline-Setup.exe";
+const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
+const isHostedInstaller = /^https?:\/\//.test(downloadUrl);
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
             </a>
             <a
               href={downloadUrl}
+              download={isHostedInstaller ? undefined : "Paraline-Setup.exe"}
               className="rounded-full border border-white/12 bg-white/6 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-white/82 backdrop-blur transition hover:border-cyan-300/35 hover:bg-white/10 hover:text-white"
             >
               Windows Installer
@@ -35,10 +37,10 @@ export default function App() {
         </header>
 
         <main>
-          <HeroSection downloadUrl={downloadUrl} />
+          <HeroSection downloadUrl={downloadUrl} isHostedInstaller={isHostedInstaller} />
           <ExperienceSection />
           <ThemeShowcaseSection />
-          <CTASection downloadUrl={downloadUrl} />
+          <CTASection downloadUrl={downloadUrl} isHostedInstaller={isHostedInstaller} />
         </main>
       </div>
     </div>
