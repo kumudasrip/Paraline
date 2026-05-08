@@ -34,8 +34,8 @@ export default function ExperienceSection() {
         <div>
           <SectionIntro
             eyebrow="Visual Experience"
-            title="A site that moves like the product."
-            body="Minimal copy. Deep contrast. Motion that feels like it belongs to the desktop, not just the browser."
+            title="Light, pressure, motion."
+            body="A restrained visual language built to feel ambient, architectural, and quietly alive."
           />
 
           <div className="mt-10 grid gap-4">
