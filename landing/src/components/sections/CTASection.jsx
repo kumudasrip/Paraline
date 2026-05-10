@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import SectionReveal from "../SectionReveal";
 
+const githubUrl = "https://github.com/SamXop123/Paraline";
+
 export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadClick }) {
   return (
     <section id="download" className="px-6 pb-24 pt-8 sm:px-8 sm:pb-28">
@@ -23,15 +25,25 @@ export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadC
               </p>
             </div>
 
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <a
-                href={downloadUrl}
-                download={isHostedInstaller ? undefined : "Paraline-Setup.exe"}
-                onClick={onDownloadClick}
-                className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:scale-[1.02] hover:bg-cyan-100"
-              >
-                Download Installer
-              </a>
+            <div className="flex flex-col items-start gap-4 lg:items-end">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
+                <a
+                  href={downloadUrl}
+                  download={isHostedInstaller ? undefined : "Paraline-Setup.exe"}
+                  onClick={onDownloadClick}
+                  className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:scale-[1.02] hover:bg-cyan-100"
+                >
+                  Download Installer
+                </a>
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-xs uppercase tracking-[0.26em] text-white/62 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                >
+                  View GitHub
+                </a>
+              </div>
               <p className="text-xs uppercase tracking-[0.3em] text-white/42">Windows 10 / 11</p>
             </div>
           </div>
