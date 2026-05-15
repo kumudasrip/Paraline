@@ -275,7 +275,7 @@ async function refreshBridgeStatus() {
 
   if (!window.audioBridge || typeof window.audioBridge.getStatus !== "function") {
     bridgeMode = "unavailable";
-    bridgeReason = "window.audioBridge.getStatus is unavailable.";
+    bridgeReason = "Audio bridge is unavailable.\n\nTroubleshooting:\n- The Electron preload bridge is missing or failed to load.\n- Try restarting Paraline.";
     return;
   }
 
@@ -285,7 +285,13 @@ async function refreshBridgeStatus() {
     bridgeReason = status?.reason || "No bridge reason provided.";
   } catch (error) {
     bridgeMode = "status-error";
-    bridgeReason = error?.message || "Failed to read bridge status.";
+    bridgeReason = [
+      error?.message || "Failed to read bridge status.",
+      "\n",
+      "Troubleshooting:",
+      "\n- The audio bridge failed to respond.",
+      "\n- Try restarting Paraline."
+    ].join("");
   }
 }
 

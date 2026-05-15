@@ -4,6 +4,8 @@ const { createAudioBridge } = require("./audioBridge");
 const { createDefaultSettings, createSettingsStore, createThemeDefaults } = require("./settingsStore");
 
 let overlayWindow;
+let lastBridgeMode = null;
+let lastBridgeReason = null;
 let audioBridge;
 let fakeTimer;
 let tray;
@@ -174,11 +176,25 @@ function resizeOverlayToPrimaryDisplay() {
 }
 
 function handleAudioBridgeStatusChange(status) {
-  if (!status || status.mode === "helper") {
+  if (!status) {
     return;
   }
-
-  startSimulatedAudioFallback();
+  // Only show notification if transitioning into simulated mode for the first time or reason has changed
+  if (
+    status.mode === "simulated" &&
+    (lastBridgeMode !== "simulated" || lastBridgeReason !== status.reason)
+  ) {
+    const { Notification } = require("electron");
+    new Notification({
+      title: "Paraline: Audio Fallback Active",
+      body: status.reason.substring(0, 200) + (status.reason.length > 200 ? "..." : "")
+    }).show();
+  }
+  lastBridgeMode = status.mode;
+  lastBridgeReason = status.reason;
+  if (status.mode !== "helper") {
+    startSimulatedAudioFallback();
+  }
   refreshTrayMenu();
 }
 

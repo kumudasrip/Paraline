@@ -34,7 +34,15 @@ function createAudioBridge(sendLevel, onStatusChange = () => {}) {
     if (!helperBinary) {
       updateStatus({
         mode: "simulated",
-        reason: "C# helper binary not found. Build or package the helper before enabling loopback capture."
+        reason: [
+          "Audio capture helper not found.",
+          "\n",
+          "Troubleshooting:",
+          "\n- The required C# audio helper binary is missing.",
+          "\n- Please build it with: dotnet build .\\audio-helper\\Paraline.AudioBridge.csproj",
+          "\n- Or run: npm run build:helper",
+          "\n- See DEVELOPMENT.md for setup instructions."
+        ].join("")
       });
       return;
     }
@@ -71,7 +79,14 @@ function createAudioBridge(sendLevel, onStatusChange = () => {}) {
         } catch (_error) {
           updateStatus({
             mode: "simulated",
-            reason: "Received invalid JSON from helper."
+            reason: [
+              "Audio helper sent invalid data.",
+              "\n",
+              "Troubleshooting:",
+              "\n- The audio capture process returned unexpected output.",
+              "\n- Try restarting Paraline.",
+              "\n- If the problem persists, rebuild the helper binary."
+            ].join("")
           });
         }
       }
@@ -80,7 +95,15 @@ function createAudioBridge(sendLevel, onStatusChange = () => {}) {
     helperProcess.stderr.on("data", (chunk) => {
       updateStatus({
         mode: "helper-error",
-        reason: chunk.toString().trim() || "Helper reported an error."
+        reason: [
+          "Audio helper error: ",
+          chunk.toString().trim() || "Helper reported an error.",
+          "\n",
+          "Troubleshooting:",
+          "\n- Check if your audio device is in use by another app.",
+          "\n- Try restarting Paraline or your computer.",
+          "\n- If this continues, rebuild the helper binary."
+        ].join("")
       });
     });
 
@@ -88,7 +111,14 @@ function createAudioBridge(sendLevel, onStatusChange = () => {}) {
       helperProcess = null;
       updateStatus({
         mode: "simulated",
-        reason: `Helper stopped with exit code ${code}.`
+        reason: [
+          `Audio helper stopped (exit code ${code}).`,
+          "\n",
+          "Troubleshooting:",
+          "\n- The audio capture process exited unexpectedly.",
+          "\n- Try restarting Paraline.",
+          "\n- If the problem persists, rebuild the helper binary."
+        ].join("")
       });
     });
   }
