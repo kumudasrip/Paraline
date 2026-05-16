@@ -82,7 +82,7 @@ export default function App() {
             <button
               onClick={toggleSidebar}
               className="absolute top-5 left-5">
-                <img src='./menu.svg' className="h-8"/>
+                <img src='./sidebar-icons/menu.svg' className="h-8"/>
             </button>
 
             <a href="#hero" className="text-xs uppercase tracking-[0.45em] text-white/70 transition hover:text-white">
