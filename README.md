@@ -18,6 +18,8 @@ not inside a music player, not trapped in a window, but woven into the desktop i
 
 It transforms system audio into ambient waves, reactive borders, and flowing light around your display, built to feel atmospheric, polished, and comfortable enough to leave running for hours.
 
+Star ⭐️ this repo to stay updated as we ship new features and improvements.
+
 </div>
 
 ---
