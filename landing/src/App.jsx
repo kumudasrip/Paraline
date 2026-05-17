@@ -5,6 +5,7 @@ import HeroSection from "./components/sections/HeroSection";
 import ExperienceSection from "./components/sections/ExperienceSection";
 import ThemeShowcaseSection from "./components/sections/ThemeShowcaseSection";
 import CTASection from "./components/sections/CTASection";
+import Footer from "./components/Footer";
 import Sidebar from "./components/Sidebar";
 
 const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL || "/downloads/Paraline-Setup.exe";
@@ -121,6 +122,7 @@ export default function App() {
             onDownloadClick={() => trackDownloadClick("cta")}
           />
         </main>
+        <Footer />
       </div>
 
       <Analytics />

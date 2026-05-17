@@ -1,7 +1,7 @@
 const footerLinks = [
-  { label: "Contact", href: "mailto:hello@paraline.app" },
-  { label: "Terms", href: "#terms" },
-  { label: "Privacy", href: "#privacy" },
+  { label: "Contact", href: "https://github.com/SamXop123/Paraline/issues" },
+  { label: "Terms", href: "https://github.com/SamXop123/Paraline/blob/main/README.md" },
+  { label: "Privacy", href: "https://github.com/SamXop123/Paraline/blob/main/README.md" },
 ];
 
 export default function Footer() {
@@ -17,6 +17,8 @@ export default function Footer() {
             <a
               key={link.label}
               href={link.href}
+              target={link.href.startsWith("http") ? "_blank" : undefined}
+              rel={link.href.startsWith("http") ? "noreferrer" : undefined}
               className="text-[11px] uppercase tracking-[0.28em] text-white/52 transition hover:text-white"
             >
               {link.label}
