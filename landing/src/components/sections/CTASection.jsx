@@ -19,7 +19,7 @@ export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadC
           <div className="relative z-10 flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
             <div className="max-w-2xl">
               <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Download</p>
-              <h2 className="mt-4 font-display text-4xl leading-none text-white sm:text-5xl">Bring the edges to life.</h2>
+              <h2 className="mt-4 font-display text-4xl leading-none text-white sm:text-5xl">Bring your desktop edges to life.</h2>
               <p className="mt-5 max-w-xl text-sm leading-7 text-white/62 sm:text-base">
                 Install Paraline for Windows and turn the desktop into a softer, <br></br>more reactive space.
               </p>
