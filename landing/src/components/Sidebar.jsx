@@ -50,7 +50,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar, currentPage, set
     setCurrentPage("installation");
     toggleSidebar();
   }}/>
-            <SidebarItem icon="./sidebar-icons/menu.svg" label="FAQ" active={currentPage === "faq"} shouldInvert={false}
+            <SidebarItem icon="./sidebar-icons/faq.svg" label="FAQ" active={currentPage === "faq"}
   onClick={() => {
     setCurrentPage("faq");
     toggleSidebar();
