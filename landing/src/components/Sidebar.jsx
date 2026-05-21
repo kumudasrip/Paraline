@@ -50,7 +50,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar, currentPage, set
     setCurrentPage("installation");
     toggleSidebar();
   }}/>
-            <SidebarItem icon="./sidebar-icons/menu.svg" label="FAQ" active={currentPage === "faq"}
+            <SidebarItem icon="./sidebar-icons/menu.svg" label="FAQ" active={currentPage === "faq"} shouldInvert={false}
   onClick={() => {
     setCurrentPage("faq");
     toggleSidebar();
@@ -88,7 +88,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar, currentPage, set
   );
 }
 
-function SidebarItem({ icon, label,to="#",external,active,onClick }) {
+function SidebarItem({ icon, label,to="#",external,active,onClick, shouldInvert = true }) {
   const classes = `relative flex items-center w-full px-3 py-3.5 rounded-2xl transition-all duration-150 group overflow-hidden ${
     active
       ? "bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
@@ -110,7 +110,7 @@ function SidebarItem({ icon, label,to="#",external,active,onClick }) {
         <div className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150 ${active ? 'bg-white/10' : 'bg-transparent group-hover:bg-white/5'}`}>
           <img
             src={icon}
-            className={`h-[18px] invert transition-all duration-150 ${active ? 'opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'}`}
+            className={`h-[18px] transition-all duration-150 ${shouldInvert ? 'invert' : ''} ${active ? 'opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'}`}
             alt={label}
           />
         </div>
