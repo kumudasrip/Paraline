@@ -1,9 +1,8 @@
 const footerLinks = [
   { label: "Contact", href: "https://github.com/SamXop123/Paraline/issues" },
   { label: "Terms & Conditions", id: "terms" },
-  { label: "Privacy", href: "https://github.com/SamXop123/Paraline/blob/main/README.md" },
-  { label: "Terms", href: "https://github.com/SamXop123/Paraline/blob/main/README.md" },
-  { label: "Privacy", action: "privacy" },
+  { label: "Privacy Policy", id: "privacy" },
+  { label: "FAQ", id: "faq" },
 ];
 
 export default function Footer({ setCurrentPage }) {
@@ -24,14 +23,6 @@ export default function Footer({ setCurrentPage }) {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="text-[11px] uppercase tracking-[0.28em] text-white/52 transition hover:text-white bg-transparent border-none cursor-pointer p-0"
-            link.action ? (
-              <button
-                key={link.label}
-                onClick={() => {
-                  if (link.action === "privacy") setCurrentPage("privacy");
-                  window.scrollTo(0, 0);
-                }}
-                className="text-[11px] uppercase tracking-[0.28em] text-white/52 transition hover:text-white"
               >
                 {link.label}
               </button>
