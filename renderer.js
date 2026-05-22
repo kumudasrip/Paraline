@@ -1377,59 +1377,23 @@ function showMenu(x, y, trayBounds, inOverflow, taskbarPosition) {
   let targetX = x;
   let targetY = y;
 
-  let validBounds = trayBounds;
-  if (!validBounds || 
-      (validBounds.x === 0 || validBounds.y === 0) || 
-      validBounds.width === 0 || 
-      validBounds.height === 0) {
-    validBounds = {
-      x: x - 12,
-      y: y - 12,
-      width: 24,
-      height: 24
-    };
+  const halfWidth = window.innerWidth / 2;
+  const halfHeight = window.innerHeight / 2;
+
+  if (x > halfWidth) {
+    // Right side: place menu to the left of the cursor
+    targetX = x - actualWidth - 5;
+  } else {
+    // Left side: place menu to the right of the cursor
+    targetX = x + 5;
   }
 
-  if (validBounds && typeof validBounds.x === 'number') {
-    if (inOverflow) {
-      // Clicked inside the overflow panel: place context menu adjacent to it (offset by 140px to clear the panel bounds)
-      if (taskbarPosition === 'left') {
-        targetX = validBounds.x + validBounds.width + 140;
-        targetY = validBounds.y;
-      } else if (taskbarPosition === 'right') {
-        targetX = validBounds.x - actualWidth - 140;
-        targetY = validBounds.y;
-      } else if (taskbarPosition === 'top') {
-        targetX = validBounds.x - actualWidth - 140;
-        targetY = validBounds.y;
-      } else { // bottom
-        targetX = validBounds.x - actualWidth - 140;
-        targetY = (validBounds.y + validBounds.height) - actualHeight;
-      }
-    } else {
-      // Clicked directly on the taskbar: place context menu directly adjacent/centered near the tray icon
-      if (taskbarPosition === 'left') {
-        targetX = validBounds.x + validBounds.width + 5;
-        targetY = validBounds.y + (validBounds.height / 2) - (actualHeight / 2);
-      } else if (taskbarPosition === 'right') {
-        targetX = validBounds.x - actualWidth - 5;
-        targetY = validBounds.y + (validBounds.height / 2) - (actualHeight / 2);
-      } else if (taskbarPosition === 'top') {
-        targetX = validBounds.x + (validBounds.width / 2) - (actualWidth / 2);
-        targetY = validBounds.y + validBounds.height + 5;
-      } else { // bottom
-        targetX = validBounds.x + (validBounds.width / 2) - (actualWidth / 2);
-        targetY = validBounds.y - actualHeight - 5;
-      }
-    }
+  if (y > halfHeight) {
+    // Bottom side: place menu above the cursor
+    targetY = y - actualHeight - 5;
   } else {
-    // Fallback using cursor coordinates
-    if (x + actualWidth > window.innerWidth) {
-      targetX = x - actualWidth;
-    }
-    if (y + actualHeight > window.innerHeight) {
-      targetY = y - actualHeight;
-    }
+    // Top side: place menu below the cursor
+    targetY = y + 5;
   }
 
   // Clamping to screen boundaries (ensuring at least 10px buffer)

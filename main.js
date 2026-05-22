@@ -953,55 +953,6 @@ function showCustomContextMenu() {
     return;
   }
   const cursorPoint = screen.getCursorScreenPoint();
-  let trayBounds = null;
-  let inOverflow = false;
-  let taskbarPosition = "bottom";
-
-  try {
-    const display = screen.getDisplayMatching(cursorPoint);
-    const { bounds, workArea } = display;
-
-    if (workArea.x > bounds.x) {
-      taskbarPosition = "left";
-    } else if (workArea.y > bounds.y) {
-      taskbarPosition = "top";
-    } else if (workArea.width < bounds.width) {
-      taskbarPosition = "right";
-    } else {
-      taskbarPosition = "bottom";
-    }
-
-    const EDGE_THRESHOLD = 60;
-    if (taskbarPosition === "bottom") {
-      inOverflow = cursorPoint.y < (bounds.y + bounds.height - EDGE_THRESHOLD);
-    } else if (taskbarPosition === "top") {
-      inOverflow = cursorPoint.y > (bounds.y + EDGE_THRESHOLD);
-    } else if (taskbarPosition === "left") {
-      inOverflow = cursorPoint.x > (bounds.x + EDGE_THRESHOLD);
-    } else if (taskbarPosition === "right") {
-      inOverflow = cursorPoint.x < (bounds.x + bounds.width - EDGE_THRESHOLD);
-    }
-  } catch (err) {
-    console.error("Failed to calculate display workarea matching cursor:", err);
-  }
-
-  if (tray) {
-    try {
-      trayBounds = tray.getBounds();
-      if (!trayBounds || trayBounds.x === 0 || trayBounds.y === 0 || trayBounds.width === 0 || trayBounds.height === 0) {
-        trayBounds = {
-          x: cursorPoint.x - 12,
-          y: cursorPoint.y - 12,
-          width: 24,
-          height: 24
-        };
-      }
-    } catch (err) {
-      console.error("Failed to calculate tray bounds:", err);
-    }
-  }
-
-  console.log("showCustomContextMenu called. cursor:", cursorPoint, "trayBounds:", trayBounds, "inOverflow:", inOverflow, "taskbarPosition:", taskbarPosition);
 
   // Force Windows to refresh the window's z-order relative to other topmost windows
   // (like the tray overflow panel) by toggling setAlwaysOnTop and calling show()/focus()
@@ -1011,12 +962,13 @@ function showCustomContextMenu() {
   overlayWindow.focus();
   overlayWindow.moveTop();
 
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const localX = cursorPoint.x - primaryDisplay.bounds.x;
+  const localY = cursorPoint.y - primaryDisplay.bounds.y;
+
   overlayWindow.webContents.send("show-context-menu", {
-    x: cursorPoint.x,
-    y: cursorPoint.y,
-    trayBounds,
-    inOverflow,
-    taskbarPosition
+    x: localX,
+    y: localY
   });
   overlayWindow.setIgnoreMouseEvents(false);
 }
