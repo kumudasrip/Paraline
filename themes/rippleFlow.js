@@ -16,54 +16,19 @@
   let waveSequence = 0;
   let activeKey = "";
 
-  function hexToRgb(hex) {
-    if (typeof hex !== "string") return [92, 186, 255];
-    const cleanHex = hex.replace("#", "");
-    const num = parseInt(cleanHex, 16);
-    return [
-      (num >> 16) & 255,
-      (num >> 8) & 255,
-      num & 255
-    ];
-  }
-
-  function getRippleFlowColors(settings) {
-    if (settings.colorStyle === "custom" && Array.isArray(settings.customColors) && settings.customColors.length > 0) {
-      return settings.customColors.map(hexToRgb);
-    }
-    const baseColor = RIPPLE_FLOW_COLORS[settings.colorStyle] || RIPPLE_FLOW_COLORS.blue;
-    return [baseColor];
-  }
-
   function getRippleFlowAudioMultiplier(settings = {}) {
-    let base = 3.2;
-    if (settings.sensitivity === "low") base = 2.2;
-    if (settings.sensitivity === "high") base = 4.4;
-
-    if (settings.sensitivity === "custom" && typeof settings.customSensitivity === "number") {
-      return base * (settings.customSensitivity / 30);
+    if (settings.sensitivity === "low") {
+      return 2.2;
     }
-    return base;
+
+    if (settings.sensitivity === "high") {
+      return 4.4;
+    }
+
+    return 3.2;
   }
 
   function getRippleProfile(settings = {}) {
-    if (settings.intensity === "custom" && typeof settings.customSensitivity === "number") {
-      const scale = settings.customSensitivity / 30;
-      return {
-        maxFronts: Math.min(12, Math.max(3, Math.round(6 * scale))),
-        segmentLength: Math.min(60, Math.max(8, Math.round(20 * scale))),
-        lineWidth: Math.min(10, Math.max(0.5, 1.85 * scale)),
-        baseSpeed: 76 * scale,
-        audioBoost: 124 * scale,
-        spawnInterval: Math.max(0.15, 0.66 / scale),
-        glow: Math.min(30, Math.max(2, 8 * scale)),
-        fadePower: 1.3,
-        verticalPulse: Math.min(15, Math.max(1, 3.4 * scale)),
-        breakAmount: 0.09,
-        alpha: Math.min(1.0, Math.max(0.2, 0.74 * scale))
-      };
-    }
-
     if (settings.intensity === "low") {
       return {
         maxFronts: 5,
@@ -140,8 +105,7 @@
       phase: sequenceOffset * Math.PI * 0.5,
       alphaScale: 1 - sequenceOffset * 0.045,
       segmentScale: 1 - sequenceOffset * 0.035,
-      maxDistancePadding: profile.segmentLength * 0.7,
-      colorIndex: waveSequence
+      maxDistancePadding: profile.segmentLength * 0.7
     };
   }
 
@@ -203,7 +167,7 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
     drawHorizontalSegment(context, centerX, height - 7, sourceLength, color, opacity, profile, 0);
   }
 
-  function drawSideRipples(context, width, height, profile, colors) {
+  function drawSideRipples(context, width, height, profile, color) {
     const centerY = height * 0.5;
     const maxDistance = centerY + profile.segmentLength;
     const leftX = 2.5;
@@ -223,7 +187,6 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
 
       const upperY = centerY - front.distance;
       const lowerY = centerY + front.distance;
-      const color = colors[front.colorIndex % colors.length];
 
       if (upperY > -profile.segmentLength) {
         drawVerticalSegment(context, leftX, upperY, length, color, opacity, profile, breakFactor);
@@ -237,7 +200,7 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
     }
   }
 
-  function drawBottomRipples(context, width, height, time, profile, colors) {
+  function drawBottomRipples(context, width, height, time, profile, color) {
     const centerX = width * 0.5;
     const maxDistance = centerX + profile.segmentLength;
     const baseY = height - 7;
@@ -256,7 +219,6 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
       const y = baseY - pulse * profile.verticalPulse * fade * (0.55 + smoothedEnergy);
       const leftX = centerX - front.distance;
       const rightX = centerX + front.distance;
-      const color = colors[front.colorIndex % colors.length];
 
       context.shadowBlur = profile.glow * (0.72 + smoothedEnergy * 1.15) * fade;
 
@@ -301,8 +263,7 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
     ensureThemeState(width, height, settings);
 
     const profile = getRippleProfile(settings);
-    const colors = getRippleFlowColors(settings);
-    const defaultColor = colors[0];
+    const color = RIPPLE_FLOW_COLORS[settings.colorStyle] || RIPPLE_FLOW_COLORS.blue;
     const delta = lastTime ? Math.min(0.05, Math.max(0.001, time - lastTime)) : 1 / 48;
     const targetEnergy = clamp01(smoothedLevel);
 
@@ -319,11 +280,11 @@ function drawBottomOrigin(context, width, height, color, profile, energy) {
     context.shadowBlur = 0;
 
     if (settings.mode === "flatRipples") {
-      drawBottomOrigin(context, width, height, defaultColor, profile, smoothedEnergy);
-      drawBottomRipples(context, width, height, time, profile, colors);
+      drawBottomOrigin(context, width, height, color, profile, smoothedEnergy);
+      drawBottomRipples(context, width, height, time, profile, color);
     } else {
-      drawSideOrigin(context, width, height, defaultColor, profile, smoothedEnergy);
-      drawSideRipples(context, width, height, profile, colors);
+      drawSideOrigin(context, width, height, color, profile, smoothedEnergy);
+      drawSideRipples(context, width, height, profile, color);
     }
 
     context.shadowBlur = 0;

@@ -26,29 +26,18 @@
   let spawnCarry = 0;
 
   function getSnowBubbleAudioMultiplier(settings = {}) {
-    let base = 3.1;
-    if (settings.motionStyle === "calm") base = 2.2;
-    if (settings.motionStyle === "energetic") base = 4.1;
-
-    if (settings.motionStyle === "custom" && typeof settings.customSensitivity === "number") {
-      const v = settings.customSensitivity;
-      const scale = v >= 30 ? 1 + (v - 30) / 17.5 : v / 30;
-      return base * scale;
+    if (settings.motionStyle === "calm") {
+      return 2.2;
     }
-    return base;
+
+    if (settings.motionStyle === "energetic") {
+      return 4.1;
+    }
+
+    return 3.1;
   }
 
   function getDensityProfile(settings = {}) {
-    if (settings.density === "custom" && typeof settings.customGap === "number") {
-      const v = settings.customGap;
-      const scale = v <= 7 ? 1 + 4 * (7 - v) / 5 : Math.max(0.1, 1 - 0.9 * (v - 7) / 23);
-      return {
-        maxParticles: Math.min(500, Math.max(5, Math.round(52 * scale))),
-        baseSpawnRate: 11 * scale,
-        audioSpawnBoost: 19 * scale
-      };
-    }
-
     if (settings.density === "low") {
       return {
         maxParticles: 32,
@@ -73,17 +62,6 @@
   }
 
   function getMotionProfile(settings = {}) {
-    if (settings.motionStyle === "custom" && typeof settings.customSpeed === "number") {
-      const v = settings.customSpeed;
-      const scale = v >= 30 ? 1 + (v - 30) / 17.5 : v / 30;
-      return {
-        baseSpeed: 25 * scale,
-        audioSpeedBoost: 36 * scale,
-        driftAmount: 11 * scale,
-        driftSpeed: 0.68 * scale
-      };
-    }
-
     if (settings.motionStyle === "calm") {
       return {
         baseSpeed: 18,
@@ -111,15 +89,6 @@
   }
 
   function getSizeProfile(settings = {}) {
-    if (settings.particleSize === "custom" && typeof settings.customThickness === "number") {
-      const v = settings.customThickness;
-      const scale = v >= 4 ? 1 + (v - 4) / 4 : Math.max(0.1, v / 4);
-      return {
-        baseSize: 2.2 * scale,
-        variance: 1.35 * scale
-      };
-    }
-
     if (settings.particleSize === "small") {
       return {
         baseSize: 1.6,

@@ -94,13 +94,11 @@
     const reactiveStyle = getReactiveBorderStyle(settings);
     const intensityMultiplier = getReactiveIntensityMultiplier(settings);
     const glowMultiplier = getGlowMultiplier(settings.glowStrength);
-    const thicknessBase = settings.borderThickness === "custom" && typeof settings.customThickness === "number"
-      ? settings.customThickness
-      : settings.borderThickness === "thick"
-        ? 4.25
-        : settings.borderThickness === "medium"
-          ? 3
-          : 2.15;
+    const thicknessBase = settings.borderThickness === "thick"
+      ? 4.25
+      : settings.borderThickness === "medium"
+        ? 3
+        : 2.15;
     const thickness = thicknessBase + smoothedLevel * 1.15 * intensityMultiplier;
     const edgeOffset = Math.max(1, thickness * 0.5) + 1;
     const left = RAINBOW_BORDER_INSET;
