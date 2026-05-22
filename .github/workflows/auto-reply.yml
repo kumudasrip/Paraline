@@ -75,8 +75,9 @@ jobs:
               'Appreciate the effort you put into improving Paraline 👍'
             ].join('\n');
 
-            await github.rest.issues.createComment({
+            await github.rest.pulls.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_request_number: context.payload.pull_request.number,
+              pull_number: context.payload.pull_request.number,
+              body
             });
