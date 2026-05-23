@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld("visualizerSettings", {
 
 contextBridge.exposeInMainWorld("paralineApp", {
   togglePause: () => ipcRenderer.invoke("app:toggle-pause"),
+  toggleHide: () => ipcRenderer.invoke("app:toggle-hide"),
   reloadVisualizer: () => ipcRenderer.invoke("app:reload-visualizer"),
   openExternal: (url) => ipcRenderer.invoke("app:open-external", url)
 });
