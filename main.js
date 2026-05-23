@@ -10,6 +10,7 @@ let audioBridge;
 let fakeTimer;
 let tray;
 let isPaused = false;
+let isHidden = false;
 let settingsStore;
 let visualizerSettings;
 let settingsWindow;
@@ -25,7 +26,7 @@ function createSettingsWindow() {
     minWidth: 800,
     minHeight: 600,
     title: "Paraline Settings",
-    backgroundColor: "#121212",
+    backgroundColor: "#08090d",
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -132,6 +133,7 @@ function getRendererSettings() {
   return {
     ...visualizerSettings,
     paused: isPaused,
+    hidden: isHidden,
     version: APP_VERSION,
     helperConnected: helperConnected
   };
@@ -176,6 +178,12 @@ function updateSettings(nextSettings) {
 
 function togglePaused() {
   isPaused = !isPaused;
+  sendVisualizerSettings();
+  refreshTrayMenu();
+}
+
+function toggleHidden() {
+  isHidden = !isHidden;
   sendVisualizerSettings();
   refreshTrayMenu();
 }
@@ -1028,6 +1036,10 @@ function refreshTrayMenu() {
       click: () => togglePaused()
     },
     {
+      label: isHidden ? "Show Visualizer" : "Hide Visualizer",
+      click: () => toggleHidden()
+    },
+    {
       label: "Reload Visualizer",
       click: () => reloadVisualizer()
     },
@@ -1137,6 +1149,8 @@ app.whenReady().then(() => {
   ipcMain.on("visualizer-action", (event, { action, data }) => {
     if (action === "toggle-paused") {
       togglePaused();
+    } else if (action === "toggle-hide") {
+      toggleHidden();
     } else if (action === "reload") {
       reloadVisualizer();
     } else if (action === "reset-theme") {
@@ -1145,6 +1159,8 @@ app.whenReady().then(() => {
       resetAllSettings();
     } else if (action === "open-url") {
       openExternalUrl(data);
+    } else if (action === "open-settings") {
+      createSettingsWindow();
     } else if (action === "quit") {
       app.quit();
     }
@@ -1169,6 +1185,11 @@ app.whenReady().then(() => {
   ipcMain.handle("app:toggle-pause", () => {
     togglePaused();
     return isPaused;
+  });
+
+  ipcMain.handle("app:toggle-hide", () => {
+    toggleHidden();
+    return isHidden;
   });
 
   ipcMain.handle("app:reload-visualizer", () => {
