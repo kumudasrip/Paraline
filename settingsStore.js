@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const DEFAULT_SETTINGS = Object.freeze({
-  selectedTheme: "ambientWave",
+  selectedTheme: "sideBars",
   ambientWave: Object.freeze({
     tone: "blue",
     sensitivity: "medium",

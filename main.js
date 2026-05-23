@@ -77,7 +77,7 @@ function createOverlayWindow() {
     fullscreenable: false,
     skipTaskbar: true,
     hasShadow: false,
-    focusable: false,
+    focusable: true,
     backgroundColor: "#00000000",
     webPreferences: {
       contextIsolation: true,
@@ -119,9 +119,12 @@ function sendAudioLevel(value, source) {
 }
 
 function getRendererSettings() {
+  const helperConnected = audioBridge ? (audioBridge.getStatus().mode === "helper") : false;
   return {
     ...visualizerSettings,
-    paused: isPaused
+    paused: isPaused,
+    version: APP_VERSION,
+    helperConnected: helperConnected
   };
 }
 
@@ -952,12 +955,44 @@ function refreshTrayMenu() {
     }
   ]);
 
-  tray.setContextMenu(menu);
+  // We render the context menu in the HTML page to achieve the macOS glassmorphic look
+  // tray.setContextMenu(menu);
   tray.setToolTip(`Paraline Visualizer - ${THEME_LABELS[visualizerSettings.selectedTheme]}`);
+}
+
+function showCustomContextMenu() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) {
+    return;
+  }
+  const cursorPoint = screen.getCursorScreenPoint();
+
+  // Force Windows to refresh the window's z-order relative to other topmost windows
+  // (like the tray overflow panel) by toggling setAlwaysOnTop and calling show()/focus()
+  overlayWindow.setAlwaysOnTop(false);
+  overlayWindow.setAlwaysOnTop(true, "screen-saver");
+  overlayWindow.show();
+  overlayWindow.focus();
+  overlayWindow.moveTop();
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const localX = cursorPoint.x - primaryDisplay.bounds.x;
+  const localY = cursorPoint.y - primaryDisplay.bounds.y;
+
+  overlayWindow.webContents.send("show-context-menu", {
+    x: localX,
+    y: localY
+  });
+  overlayWindow.setIgnoreMouseEvents(false);
 }
 
 function createTray() {
   tray = new Tray(createTrayIcon());
+  tray.on("click", () => {
+    showCustomContextMenu();
+  });
+  tray.on("right-click", () => {
+    showCustomContextMenu();
+  });
   refreshTrayMenu();
 }
 
@@ -978,6 +1013,37 @@ app.whenReady().then(() => {
 
   ipcMain.handle("visualizer-settings:get", () => {
     return getRendererSettings();
+  });
+
+  ipcMain.on("visualizer-settings:update", (event, patch) => {
+    updateSettings(patch);
+  });
+
+  ipcMain.on("visualizer-action", (event, { action, data }) => {
+    if (action === "toggle-paused") {
+      togglePaused();
+    } else if (action === "reload") {
+      reloadVisualizer();
+    } else if (action === "reset-theme") {
+      resetCurrentThemeSettings();
+    } else if (action === "reset-all") {
+      resetAllSettings();
+    } else if (action === "open-url") {
+      openExternalUrl(data);
+    } else if (action === "quit") {
+      app.quit();
+    }
+  });
+
+  ipcMain.on("set-ignore-mouse-events", (event, ignore) => {
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      if (ignore) {
+        overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+        overlayWindow.blur();
+      } else {
+        overlayWindow.setIgnoreMouseEvents(false);
+      }
+    }
   });
 
   ipcMain.handle("visualizer-settings:update", (_event, patch) => {
