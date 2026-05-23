@@ -62,4 +62,12 @@ export const themes = [
     blurb: "Sharper faceted glints along the perimeter, tuned for a colder, prismatic mood.",
     preview: "/previews/edge-crystals-preview.svg",
   },
+  {
+    key: "side-braids",
+    name: "Side Braids",
+    tag: "Glowing neon fibers",
+    blurb: "Intertwined glowing neon strands braiding and flowing vertically along screen edges.",
+    preview: "/previews/side-braids-preview.svg",
+  },
 ];
+

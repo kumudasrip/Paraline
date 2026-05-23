@@ -57,7 +57,8 @@ const THEME_LABELS = {
   dotParticles: "Dot Particles",
   rippleFlow: "Ripple Flow",
   snowBubbleParticles: "Snow Particles",
-  edgeCrystals: "Edge Crystals"
+  edgeCrystals: "Edge Crystals",
+  sideBraids: "Side Braids"
 };
 
 function createOverlayWindow() {
@@ -301,7 +302,8 @@ function buildMainThemeMenuItems() {
     { value: "dotParticles", label: "Dot Particles" },
     { value: "rippleFlow", label: "Ripple Flow" },
     { value: "snowBubbleParticles", label: "Snow Particles" },
-    { value: "edgeCrystals", label: "Edge Crystals" }
+    { value: "edgeCrystals", label: "Edge Crystals" },
+    { value: "sideBraids", label: "Side Braids" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -854,6 +856,95 @@ function buildEdgeCrystalsMenuItems() {
   ];
 }
 
+function buildSideBraidsMenuItems() {
+  const braidSettings = visualizerSettings.sideBraids;
+
+  return [
+    {
+      label: "Side Braids Settings",
+      enabled: false
+    },
+    {
+      label: "Braid Density",
+      submenu: [
+        { label: "Sparse", value: "sparse" },
+        { label: "Medium", value: "medium" },
+        { label: "Dense", value: "dense" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.braidDensity === option.value,
+        click: () => updateSettings({ sideBraids: { braidDensity: option.value } })
+      }))
+    },
+    {
+      label: "Braid Width",
+      submenu: [
+        { label: "Thin", value: "thin" },
+        { label: "Medium", value: "medium" },
+        { label: "Thick", value: "thick" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.braidWidth === option.value,
+        click: () => updateSettings({ sideBraids: { braidWidth: option.value } })
+      }))
+    },
+    {
+      label: "Motion Style",
+      submenu: [
+        { label: "Calm", value: "calm" },
+        { label: "Balanced", value: "balanced" },
+        { label: "Energetic", value: "energetic" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.motionStyle === option.value,
+        click: () => updateSettings({ sideBraids: { motionStyle: option.value } })
+      }))
+    },
+    {
+      label: "Color Style",
+      submenu: [
+        { label: "Cyan Pink", value: "cyanPink" },
+        { label: "Blue Purple", value: "bluePurple" },
+        { label: "Red Blue", value: "redBlue" },
+        { label: "White", value: "white" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.colorStyle === option.value,
+        click: () => updateSettings({ sideBraids: { colorStyle: option.value } })
+      }))
+    },
+    {
+      label: "Flow Direction",
+      submenu: [
+        { label: "Top Down", value: "topDown" },
+        { label: "Bottom Up", value: "bottomUp" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.flowDirection === option.value,
+        click: () => updateSettings({ sideBraids: { flowDirection: option.value } })
+      }))
+    },
+    {
+      label: "Glow Strength",
+      submenu: [
+        { label: "Soft", value: "soft" },
+        { label: "Medium", value: "medium" },
+        { label: "Strong", value: "strong" }
+      ].map((option) => ({
+        label: option.label,
+        type: "radio",
+        checked: braidSettings.glowStrength === option.value,
+        click: () => updateSettings({ sideBraids: { glowStrength: option.value } })
+      }))
+    }
+  ];
+}
+
 function buildActiveThemeMenuItems() {
   if (visualizerSettings.selectedTheme === "reactiveBorder") {
     return buildReactiveBorderMenuItems();
@@ -885,6 +976,10 @@ function buildActiveThemeMenuItems() {
 
   if (visualizerSettings.selectedTheme === "edgeCrystals") {
     return buildEdgeCrystalsMenuItems();
+  }
+
+  if (visualizerSettings.selectedTheme === "sideBraids") {
+    return buildSideBraidsMenuItems();
   }
 
   return buildAmbientWaveMenuItems();

@@ -8,7 +8,7 @@ export default function ThemeShowcaseSection() {
       <div className="mx-auto max-w-7xl">
         <SectionIntro
           eyebrow="Theme Showcase"
-          title="Nine themes. One edge."
+          title="Ten themes. One edge."
           body="Every mode currently in Paraline, translated into lightweight interactive previews."
           align="center"
         />

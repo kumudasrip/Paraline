@@ -63,10 +63,23 @@ const DEFAULT_SETTINGS = Object.freeze({
     glowStrength: "medium",
     colorStyle: "blue",
     edgeMode: "both"
+  }),
+  sideBraids: Object.freeze({
+    braidDensity: "medium",
+    motionStyle: "balanced",
+    glowStrength: "medium",
+    braidWidth: "medium",
+    colorStyle: "cyanPink",
+    flowDirection: "topDown",
+    customColors: ["#00e5ff", "#ff2d7b", "#8ee2ff"],
+    customThickness: 4,
+    customGap: 7,
+    customSensitivity: 30,
+    customSpeed: 30
   })
 });
 
-const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals"]);
+const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm", "custom"]);
 const VALID_LEVELS = new Set(["low", "medium", "high", "custom"]);
 const VALID_EDGE_MODES = new Set(["top", "bottom", "both"]);
@@ -92,6 +105,11 @@ const VALID_PARTICLE_SIZES = new Set(["small", "medium", "large", "custom"]);
 const VALID_EDGE_FLUTTER_STYLES = new Set(["soft", "balanced", "energetic", "custom"]);
 const VALID_EDGE_FLUTTER_COLORS = new Set(["blue", "purple", "red", "white", "custom"]);
 const VALID_EDGE_FLUTTER_MODES = new Set(["left", "right", "both"]);
+const VALID_BRAID_DENSITY = new Set(["sparse", "medium", "dense", "custom"]);
+const VALID_BRAID_WIDTH = new Set(["thin", "medium", "thick", "custom"]);
+const VALID_BRAID_MOTION = new Set(["calm", "balanced", "energetic", "custom"]);
+const VALID_BRAID_COLORS = new Set(["cyanPink", "bluePurple", "redBlue", "white", "custom"]);
+const VALID_BRAID_DIRECTION = new Set(["topDown", "bottomUp"]);
 
 function createDefaultSettings() {
   return {
@@ -104,7 +122,8 @@ function createDefaultSettings() {
     dotParticles: { ...DEFAULT_SETTINGS.dotParticles },
     rippleFlow: { ...DEFAULT_SETTINGS.rippleFlow },
     snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles },
-    edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals }
+    edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals },
+    sideBraids: { ...DEFAULT_SETTINGS.sideBraids }
   };
 }
 
@@ -118,7 +137,8 @@ function createThemeDefaults() {
     dotParticles: { ...DEFAULT_SETTINGS.dotParticles },
     rippleFlow: { ...DEFAULT_SETTINGS.rippleFlow },
     snowBubbleParticles: { ...DEFAULT_SETTINGS.snowBubbleParticles },
-    edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals }
+    edgeCrystals: { ...DEFAULT_SETTINGS.edgeCrystals },
+    sideBraids: { ...DEFAULT_SETTINGS.sideBraids }
   };
 }
 
@@ -254,6 +274,22 @@ function sanitizeEdgeCrystals(input = {}) {
   };
 }
 
+function sanitizeSideBraids(input = {}) {
+  return {
+    braidDensity: pick(input.braidDensity, VALID_BRAID_DENSITY, DEFAULT_SETTINGS.sideBraids.braidDensity),
+    motionStyle: pick(input.motionStyle, VALID_BRAID_MOTION, DEFAULT_SETTINGS.sideBraids.motionStyle),
+    glowStrength: pick(input.glowStrength, VALID_GLOW_STRENGTHS, DEFAULT_SETTINGS.sideBraids.glowStrength),
+    braidWidth: pick(input.braidWidth, VALID_BRAID_WIDTH, DEFAULT_SETTINGS.sideBraids.braidWidth),
+    colorStyle: pick(input.colorStyle, VALID_BRAID_COLORS, DEFAULT_SETTINGS.sideBraids.colorStyle),
+    flowDirection: pick(input.flowDirection, VALID_BRAID_DIRECTION, DEFAULT_SETTINGS.sideBraids.flowDirection),
+    customColors: input.customColors,
+    customThickness: typeof input.customThickness === "number" ? input.customThickness : DEFAULT_SETTINGS.sideBraids.customThickness,
+    customGap: typeof input.customGap === "number" ? input.customGap : DEFAULT_SETTINGS.sideBraids.customGap,
+    customSensitivity: typeof input.customSensitivity === "number" ? input.customSensitivity : DEFAULT_SETTINGS.sideBraids.customSensitivity,
+    customSpeed: typeof input.customSpeed === "number" ? input.customSpeed : DEFAULT_SETTINGS.sideBraids.customSpeed
+  };
+}
+
 function migrateLegacySettings(input = {}) {
   if (VALID_MAIN_THEMES.has(input.selectedTheme) && !input.edgeFlutter) {
     return input;
@@ -315,7 +351,8 @@ function sanitizeSettings(input = {}) {
     dotParticles: sanitizeDotParticles(source.dotParticles),
     rippleFlow: sanitizeRippleFlow(source.rippleFlow),
     snowBubbleParticles: sanitizeSnowBubbleParticles(source.snowBubbleParticles),
-    edgeCrystals: sanitizeEdgeCrystals(source.edgeCrystals)
+    edgeCrystals: sanitizeEdgeCrystals(source.edgeCrystals),
+    sideBraids: sanitizeSideBraids(source.sideBraids)
   };
 }
 

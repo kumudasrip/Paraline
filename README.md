@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <div align="center">
 
@@ -78,6 +78,17 @@ Star ⭐️ this repo to stay updated as we ship new features and improvements.
 <strong>Edge Crystals</strong><br/>
 <img src="./previews/edge-crystals-preview.svg" alt="Edge Crystals Preview" width="260"/>
 
+</td>
+</tr>
+<tr>
+<td align="center" width="33%">
+<strong>Side Braids</strong><br/>
+<img src="./previews/side-braids-preview.svg" alt="Side Braids Preview" width="260"/>
+
+</td>
+<td align="center" width="33%">
+</td>
+<td align="center" width="33%">
 </td>
 </tr>
 </table>
@@ -203,6 +214,21 @@ Paraline is designed to stay running in the background without feeling heavy or 
 <td><strong>Ripple Flow</strong></td>
 <td>Symmetric edge wavefronts expanding outward from a center origin.</td>
 <td>Mode, intensity, sensitivity, color</td>
+</tr>
+<tr>
+<td><strong>Snow Particles</strong></td>
+<td>Glowing snow and bubble-like particles falling down your screen sides or full width.</td>
+<td>Fall Area, Density, Motion Style, Glow Strength, Particle Size</td>
+</tr>
+<tr>
+<td><strong>Edge Crystals</strong></td>
+<td>Sharp geometric crystal-like strokes on screen edges that flutter and expand inward.</td>
+<td>Color Style, Flutter Style, Density, Glow Strength, Edge Mode</td>
+</tr>
+<tr>
+<td><strong>Side Braids</strong></td>
+<td>Intertwined glowing neon strands braiding and flowing vertically along screen edges.</td>
+<td>Color Style, Braid Density, Motion Style, Glow Strength, Braid Width, Flow Direction</td>
 </tr>
 </table>
 

@@ -75,6 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
             density: { label: "Density", options: ["low", "medium", "high", "custom"] },
             glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong", "custom"] },
             edgeMode: { label: "Edge Mode", options: ["left", "right", "both"] }
+        },
+        sideBraids: {
+            colorStyle: { label: "Color Style", options: ["cyanPink", "bluePurple", "redBlue", "white", "custom"] },
+            braidDensity: { label: "Braid Density", options: ["sparse", "medium", "dense", "custom"] },
+            motionStyle: { label: "Motion Style", options: ["calm", "balanced", "energetic", "custom"] },
+            glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong", "custom"] },
+            braidWidth: { label: "Braid Width", options: ["thin", "medium", "thick", "custom"] },
+            flowDirection: { label: "Flow Direction", options: ["topDown", "bottomUp"] }
         }
     };
 
@@ -134,18 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let showThick = false, showGap = false, showSens = false, showSpeed = false;
         
         if (schema) {
-            if ('barThickness' in schema || 'borderThickness' in schema || 'segmentLength' in schema || 'particleSize' in schema) {
+            if ('barThickness' in schema || 'borderThickness' in schema || 'segmentLength' in schema || 'particleSize' in schema || 'braidWidth' in schema) {
                 showThick = true;
                 document.getElementById('label-customThickness').textContent = 
                     'barThickness' in schema ? "Bar Thickness" :
                     'borderThickness' in schema ? "Border Thickness" :
-                    'segmentLength' in schema ? "Segment Length" : "Particle Size";
+                    'segmentLength' in schema ? "Segment Length" :
+                    'braidWidth' in schema ? "Braid Thickness" : "Particle Size";
             }
             
-            if ('barDensity' in schema || 'density' in schema) {
+            if ('barDensity' in schema || 'density' in schema || 'braidDensity' in schema) {
                 showGap = true;
                 document.getElementById('label-customGap').textContent = 
-                    'barDensity' in schema ? "Bar Gap" : "Density Gap";
+                    'barDensity' in schema ? "Bar Gap" :
+                    'braidDensity' in schema ? "Braid Density" : "Density Gap";
             }
             
             if ('sensitivity' in schema || 'intensity' in schema || 'speed' in schema || 'speedMode' in schema || 'motionStyle' in schema || 'flutterStyle' in schema) {
@@ -299,8 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const schema = THEMES_SCHEMA[activeTheme];
         
         const colorKeys = ['tone', 'colorStyle'];
-        const thickKeys = ['barThickness', 'borderThickness', 'segmentLength', 'particleSize'];
-        const gapKeys = ['barDensity', 'density'];
+        const thickKeys = ['barThickness', 'borderThickness', 'segmentLength', 'particleSize', 'braidWidth'];
+        const gapKeys = ['barDensity', 'density', 'braidDensity'];
         const sensKeys = ['sensitivity', 'intensity', 'speed', 'speedMode', 'motionStyle', 'flutterStyle'];
 
         colorKeys.forEach(k => { if (schema[k]) themePatch[k] = "custom"; });

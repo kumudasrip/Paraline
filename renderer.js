@@ -54,6 +54,11 @@ const {
   drawEdgeCrystals
 } = window.ParalineEdgeCrystals;
 
+const {
+  getSideBraidsAudioMultiplier,
+  drawSideBraids
+} = window.ParalineSideBraids;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
@@ -138,6 +143,14 @@ let visualizerState = {
     colorStyle: "blue",
     edgeMode: "both"
   },
+  sideBraids: {
+    braidDensity: "medium",
+    motionStyle: "balanced",
+    glowStrength: "medium",
+    braidWidth: "medium",
+    colorStyle: "cyanPink",
+    flowDirection: "topDown"
+  },
   paused: false
 };
 
@@ -180,6 +193,10 @@ function getEdgeCrystalsSettings() {
   return visualizerState.edgeCrystals || {};
 }
 
+function getSideBraidsSettings() {
+  return visualizerState.sideBraids || {};
+}
+
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
     return getReactiveInputMultiplier(getReactiveBorderSettings());
@@ -211,6 +228,10 @@ function getActiveAudioMultiplier() {
 
   if (visualizerState.selectedTheme === "edgeCrystals") {
     return getEdgeCrystalsAudioMultiplier(getEdgeCrystalsSettings());
+  }
+
+  if (visualizerState.selectedTheme === "sideBraids") {
+    return getSideBraidsAudioMultiplier(getSideBraidsSettings());
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -332,6 +353,8 @@ function renderFrame(now) {
     activeFrameInterval = PARTICLE_FRAME_INTERVAL;
   } else if (visualizerState.selectedTheme === "edgeCrystals") {
     activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+  } else if (visualizerState.selectedTheme === "sideBraids") {
+    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
   }
 
   if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
@@ -425,6 +448,15 @@ function renderFrame(now) {
       smoothedLevel,
       settings: getEdgeCrystalsSettings()
     });
+  } else if (visualizerState.selectedTheme === "sideBraids") {
+    drawSideBraids({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getSideBraidsSettings()
+    });
   } else {
     drawAmbientWave({
       context,
@@ -482,10 +514,14 @@ function applySettings(nextSettings) {
     edgeCrystals: {
       ...visualizerState.edgeCrystals,
       ...(nextSettings?.edgeCrystals || {})
+    },
+    sideBraids: {
+      ...visualizerState.sideBraids,
+      ...(nextSettings?.sideBraids || {})
     }
   };
 
-  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals"].includes(visualizerState.selectedTheme)) {
+  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"].includes(visualizerState.selectedTheme)) {
     visualizerState.selectedTheme = "ambientWave";
   }
 
