@@ -55,4 +55,89 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
+  <button id="scrollToTopBtn" title="Go to top" aria-label="Scroll to top" style="
+  display: none !important; 
+  position: fixed !important; 
+  bottom: 40px !important;    
+  left: 50% !important;       
+  transform: translate(-50%, 0) !important; 
+  z-index: 999999 !important;  
+  width: 55px !important;
+  height: 55px !important;
+  border: none !important;
+  outline: none !important;
+  background: linear-gradient(135deg, #6e8efb, #a777e3) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 20px rgba(110, 142, 251, 0.5) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+</button>
+
+<script>
+(() => {
+  const btn = document.getElementById("scrollToTopBtn");
+  if (!btn) return;
+
+  // Hover animations handled explicitly via JavaScript to bypass CSS stylesheet gaps
+  btn.addEventListener("mouseenter", () => {
+    btn.style.transform = "translate(-50%, -5px) !important";
+    btn.style.background = "linear-gradient(135deg, #a777e3, #6e8efb) !important";
+  });
+  btn.addEventListener("mouseleave", () => {
+    btn.style.transform = "translate(-50%, 0) !important";
+    btn.style.background = "linear-gradient(135deg, #6e8efb, #a777e3) !important";
+  });
+
+  // Global monitoring loop to catch any scrolling element container inside the Electron viewport
+  const forceCheck = () => {
+    let hasScrolled = window.scrollY > 100 || document.documentElement.scrollTop > 100 || document.body.scrollTop > 100;
+    
+    // Check inner custom scrollable wrappers
+    if (!hasScrolled) {
+      const customPanels = document.querySelectorAll("div, main, section");
+      for (let panel of customPanels) {
+        if (panel.scrollTop > 100) {
+          hasScrolled = true;
+          break;
+        }
+      }
+    }
+
+    if (hasScrolled) {
+      btn.style.setProperty("display", "flex", "important");
+      btn.style.setProperty("opacity", "1", "important");
+    } else {
+      btn.style.setProperty("opacity", "0", "important");
+      setTimeout(() => {
+        if (btn.style.opacity === "0") btn.style.setProperty("display", "none", "important");
+      }, 300);
+    }
+  };
+
+  // Capture scrolling anywhere on the UI window view
+  window.addEventListener("scroll", forceCheck, true);
+
+  // Core Click Handler
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+    document.body.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Target internal scroll contexts directly 
+    document.querySelectorAll("div, main, section").forEach(el => {
+      if (el.scrollTop > 0) {
+        el.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+  });
+})();
+</script>
   </html>
