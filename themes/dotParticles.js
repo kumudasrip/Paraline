@@ -237,8 +237,6 @@
     context.globalAlpha = 1;
     context.shadowBlur = 0;
 
-    // Batch particles by color to reduce shadow state changes
-    const particlesByColor = new Map();
     for (const particle of particles) {
       particle.direction = getParticleDirection(particle, settings);
       particle.distance += delta * speed * particle.speedSeed * particle.direction;
@@ -259,25 +257,8 @@
       const x = point.x + point.normalX * jitter;
       const y = point.y + point.normalY * jitter;
 
-      if (!particlesByColor.has(particle.colorIndex)) {
-        particlesByColor.set(particle.colorIndex, []);
-      }
-      particlesByColor.get(particle.colorIndex).push({ x, y, radius, opacity });
+      drawDot(context, x, y, radius, PARTICLE_COLORS[particle.colorIndex], opacity, glowBlur, performanceMode);
     }
-
-    // Draw particles by color batch
-    particlesByColor.forEach((batchParticles, colorIndex) => {
-      const color = PARTICLE_COLORS[colorIndex];
-      const sampleColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
-      
-      // Apply shadow once per color batch
-      applyOptimizedShadow(context, sampleColor, glowBlur, performanceMode);
-      
-      // Draw all particles of this color
-      batchParticles.forEach(p => {
-        drawDot(context, p.x, p.y, p.radius, color, p.opacity, glowBlur, performanceMode);
-      });
-    });
 
     beatPulse *= Math.pow(0.14, delta);
     lastTime = time;

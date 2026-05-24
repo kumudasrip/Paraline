@@ -155,50 +155,6 @@
     return { h: h * 360, s: s * 100, l: l * 100 };
   }
 
-  // ========================================
-  // Shadow Caching System for Performance
-  // ========================================
-  
-  const SHADOW_CACHE = new Map();
-  const MAX_CACHE_SIZE = 50;
-  const SHADOW_CACHE_CANVAS_SIZE = 64;
-
-  function getShadowCacheKey(color, blurRadius) {
-    return `${color}-${blurRadius.toFixed(2)}`;
-  }
-
-  function getCachedShadow(context, color, blurRadius) {
-    const cacheKey = getShadowCacheKey(color, blurRadius);
-    
-    if (SHADOW_CACHE.has(cacheKey)) {
-      return SHADOW_CACHE.get(cacheKey);
-    }
-
-    // Create offscreen canvas for shadow
-    const canvas = document.createElement('canvas');
-    canvas.width = SHADOW_CACHE_CANVAS_SIZE;
-    canvas.height = SHADOW_CACHE_CANVAS_SIZE;
-    const ctx = canvas.getContext('2d');
-
-    // Draw a sample shape with shadow
-    ctx.clearRect(0, 0, SHADOW_CACHE_CANVAS_SIZE, SHADOW_CACHE_CANVAS_SIZE);
-    ctx.beginPath();
-    ctx.arc(SHADOW_CACHE_CANVAS_SIZE / 2, SHADOW_CACHE_CANVAS_SIZE / 2, 10, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = blurRadius;
-    ctx.fill();
-
-    // Store in cache with LRU eviction
-    if (SHADOW_CACHE.size >= MAX_CACHE_SIZE) {
-      const firstKey = SHADOW_CACHE.keys().next().value;
-      SHADOW_CACHE.delete(firstKey);
-    }
-    
-    SHADOW_CACHE.set(cacheKey, canvas);
-    return canvas;
-  }
-
   function applyOptimizedShadow(context, color, blurRadius, performanceMode = 'balanced') {
     if (performanceMode === 'performance') {
       // Disable shadows in performance mode

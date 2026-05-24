@@ -109,9 +109,6 @@
     const emphasisLength = perimeter * 0.3;
     const perfMultiplier = getPerformanceMultiplier(performanceMode);
 
-    // Batch segments by similar shadow intensity to reduce state changes
-    const segments = [];
-    
     for (let index = 0; index < segmentCount; index++) {
       const startT = index / segmentCount;
       const endT = (index + 1) / segmentCount;
@@ -133,46 +130,17 @@
       const opacity = Math.min(0.92, (0.2 + intensity * 0.5) * (0.88 + glowMultiplier * 0.18));
       const color = resolveAnimatedColor(colorStyle, normalizedDistance, travelDistance * 0.62, opacity, intensity * 10);
 
-      segments.push({
-        sx, sy, ex, ey,
-        color,
-        lineWidth: thickness + trailStrength * (0.7 + glowMultiplier * 0.2),
-        shadowIntensity: trailStrength,
-        opacity
-      });
+      context.beginPath();
+      context.moveTo(sx, sy);
+      context.lineTo(ex, ey);
+      context.strokeStyle = color;
+      context.lineWidth = thickness + trailStrength * (0.7 + glowMultiplier * 0.2);
+      
+      const optimizedBlur = glowBlur * (0.45 + trailStrength * (0.85 + glowMultiplier * 0.2)) * perfMultiplier;
+      applyOptimizedShadow(context, color, optimizedBlur, performanceMode);
+      
+      context.stroke();
     }
-
-    // Draw segments with optimized shadow application
-    // Group by shadow intensity to reduce state changes
-    const shadowBatches = new Map();
-    
-    segments.forEach(seg => {
-      const shadowKey = Math.floor(seg.shadowIntensity * 10);
-      if (!shadowBatches.has(shadowKey)) {
-        shadowBatches.set(shadowKey, []);
-      }
-      shadowBatches.get(shadowKey).push(seg);
-    });
-
-    // Draw each batch with consistent shadow settings
-    shadowBatches.forEach((batchSegments, shadowKey) => {
-      const avgShadowIntensity = shadowKey / 10;
-      const sampleColor = batchSegments[0].color;
-      const optimizedBlur = glowBlur * (0.45 + avgShadowIntensity * (0.85 + glowMultiplier * 0.2)) * perfMultiplier;
-      
-      // Apply optimized shadow once per batch
-      applyOptimizedShadow(context, sampleColor, optimizedBlur, performanceMode);
-      
-      // Draw all segments in this batch
-      batchSegments.forEach(seg => {
-        context.beginPath();
-        context.moveTo(seg.sx, seg.sy);
-        context.lineTo(seg.ex, seg.ey);
-        context.strokeStyle = seg.color;
-        context.lineWidth = seg.lineWidth;
-        context.stroke();
-      });
-    });
   }
 
   function drawFlowBorder(options) {

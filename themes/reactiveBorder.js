@@ -70,9 +70,6 @@
     const perfMultiplier = getPerformanceMultiplier(performanceMode);
     const optimizedBlur = glowBlur * perfMultiplier;
 
-    // Apply optimized shadow once for the entire edge
-    applyOptimizedShadow(context, colorStyle.mode === 'rainbow' ? 'hsla(180, 92%, 64%, 1)' : `hsla(${colorStyle.hueA}, 92%, 66%, 1)`, optimizedBlur, performanceMode);
-
     for (let index = 0; index < segmentCount; index++) {
       const startT = index / segmentCount;
       const endT = (index + 1) / segmentCount;
@@ -88,6 +85,9 @@
       context.lineTo(ex, ey);
       context.strokeStyle = color;
       context.lineWidth = thickness;
+      
+      applyOptimizedShadow(context, color, optimizedBlur, performanceMode);
+      
       context.stroke();
     }
   }
