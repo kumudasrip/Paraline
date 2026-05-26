@@ -144,6 +144,9 @@ Renderer / Canvas Visualizer
 - `themes/edgeCrystals.js`
   Edge Crystals rendering with left/right edge-locked vibrating energy strokes.
 
+- `themes/auroraDrift.js`
+  Aurora Drift rendering with layered aurora curtains, shimmer, and bottom-edge flow.
+
 - `preload.js`
   Safe Electron-to-renderer bridge.
 
@@ -221,6 +224,13 @@ The app uses one root selected theme plus nested settings per theme:
     "glowStrength": "medium",
     "colorStyle": "blue",
     "edgeMode": "both"
+  },
+  "auroraDrift": {
+    "intensity": 1.0,
+    "turbulence": 1.0,
+    "glow": 1.0,
+    "speed": 1.05,
+    "layerDensity": 6
   }
 }
 ```
@@ -250,7 +260,8 @@ Paraline/
 │   ├── dotParticles.js
 │   ├── rippleFlow.js
 │   ├── snowBubbleParticles.js
-│   └── edgeCrystals.js
+│   ├── edgeCrystals.js
+│   └── auroraDrift.js
 ├── package.json
 ├── README.md
 ├── docs/
