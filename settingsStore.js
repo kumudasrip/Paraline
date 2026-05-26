@@ -5,6 +5,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   launchOnStartup: false,
   selectedTheme: "ambientWave",
   performanceMode: "balanced",
+  fpsLimit: "default",
   ambientWave: Object.freeze({
     tone: "blue",
     sensitivity: "medium",
@@ -83,6 +84,7 @@ const DEFAULT_SETTINGS = Object.freeze({
 
 const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"]);
 const VALID_PERFORMANCE_MODES = new Set(["performance", "balanced", "quality"]);
+const VALID_FPS_LIMITS = new Set(["default", "battery", "unlocked"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm", "custom"]);
 const VALID_LEVELS = new Set(["low", "medium", "high", "custom"]);
 const VALID_EDGE_MODES = new Set(["top", "bottom", "both"]);
@@ -350,6 +352,7 @@ function sanitizeSettings(input = {}) {
     launchOnStartup: typeof source.launchOnStartup === "boolean" ? source.launchOnStartup : DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
     performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
+    fpsLimit: pick(source.fpsLimit, VALID_FPS_LIMITS, DEFAULT_SETTINGS.fpsLimit),
     ambientWave: sanitizeAmbientWave(source.ambientWave),
     reactiveBorder: sanitizeReactiveBorder(source.reactiveBorder),
     flowBorder: sanitizeFlowBorder(source.flowBorder),
