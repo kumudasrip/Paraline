@@ -18,6 +18,19 @@
   let smoothedEnergy = 0.22;
   let waveSequence = 0;
   let activeKey = "";
+  const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+  function normalizeHexColor(color) {
+    if (typeof color !== "string" || !HEX_COLOR_PATTERN.test(color)) {
+      return null;
+    }
+
+    if (color.length === 4) {
+      return `#${color.slice(1).split("").map((channel) => channel + channel).join("")}`;
+    }
+
+    return color;
+  }
 
   function getRippleFlowAudioMultiplier(settings = {}) {
     if (settings.sensitivity === "low") {
@@ -119,7 +132,16 @@
 
   function getRippleFlowColor(settings = {}) {
     if (settings.colorStyle === "custom" && Array.isArray(settings.customColors) && settings.customColors.length) {
-      return hexToRgb(settings.customColors[1] || settings.customColors[0]);
+      const candidate = settings.customColors[1] || settings.customColors[0];
+      const normalized = normalizeHexColor(candidate);
+
+      if (normalized) {
+        try {
+          return hexToRgb(normalized);
+        } catch (_error) {
+          // Fall through to the default color below.
+        }
+      }
     }
 
     return RIPPLE_FLOW_COLORS[settings.colorStyle] || RIPPLE_FLOW_COLORS.blue;

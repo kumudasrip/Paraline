@@ -27,6 +27,33 @@
   let lastTime = 0;
   let smoothedEnergy = 0.22;
   let spawnCarry = 0;
+  const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+  function normalizeHexColor(color) {
+    if (typeof color !== "string" || !HEX_COLOR_PATTERN.test(color)) {
+      return null;
+    }
+
+    if (color.length === 4) {
+      return `#${color.slice(1).split("").map((channel) => channel + channel).join("")}`;
+    }
+
+    return color;
+  }
+
+  function toRgbColor(color) {
+    const normalized = normalizeHexColor(color);
+
+    if (!normalized) {
+      return null;
+    }
+
+    try {
+      return hexToRgb(normalized);
+    } catch (_error) {
+      return null;
+    }
+  }
 
   function getSnowBubbleAudioMultiplier(settings = {}) {
     if (settings.motionStyle === "calm") {
@@ -127,7 +154,15 @@
 
   function getParticlePalette(settings = {}) {
     if (Array.isArray(settings.customColors) && settings.customColors.length) {
-      const fills = settings.customColors.map(hexToRgb);
+      const fills = settings.customColors
+        .filter((color) => typeof color === "string")
+        .filter((color) => HEX_COLOR_PATTERN.test(color))
+        .map((color) => toRgbColor(color))
+        .filter((color) => Array.isArray(color));
+
+      if (!fills.length) {
+        return PARTICLE_COLORS;
+      }
 
       return {
         fills,

@@ -22,6 +22,33 @@
   let lastSwitchAt = -10;
   let globalDirection = 1;
   let beatPulse = 0;
+  const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+  function normalizeHexColor(color) {
+    if (typeof color !== "string" || !HEX_COLOR_PATTERN.test(color)) {
+      return null;
+    }
+
+    if (color.length === 4) {
+      return `#${color.slice(1).split("").map((channel) => channel + channel).join("")}`;
+    }
+
+    return color;
+  }
+
+  function toRgbColor(color, fallback) {
+    const normalized = normalizeHexColor(color);
+
+    if (!normalized) {
+      return fallback;
+    }
+
+    try {
+      return hexToRgb(normalized);
+    } catch (_error) {
+      return fallback;
+    }
+  }
 
   function getDotParticlesAudioMultiplier(settings = {}) {
     let base = 3.1;
@@ -199,7 +226,14 @@
 
   function getParticleColors(settings = {}) {
     if (Array.isArray(settings.customColors) && settings.customColors.length) {
-      return settings.customColors.map(hexToRgb);
+      const colors = settings.customColors
+        .filter((color) => typeof color === "string")
+        .filter((color) => HEX_COLOR_PATTERN.test(color))
+        .map((color, index) => toRgbColor(color, PARTICLE_COLORS[index % PARTICLE_COLORS.length]));
+
+      if (colors.length) {
+        return colors;
+      }
     }
 
     return PARTICLE_COLORS;
