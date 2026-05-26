@@ -1262,7 +1262,10 @@ app.whenReady().then(() => {
       return { success: false };
     }
 
-    const result = await dialog.showSaveDialog({
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed()
+      ? settingsWindow
+      : BrowserWindow.getFocusedWindow();
+    const result = await dialog.showSaveDialog(dialogParent, {
       title: "Export Theme Profile",
       defaultPath: `${profileName}.json`,
       filters: [
@@ -1287,7 +1290,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle("theme-profiles:import", async () => {
     try {
-      const result = await dialog.showOpenDialog({
+      const dialogParent = settingsWindow && !settingsWindow.isDestroyed()
+        ? settingsWindow
+        : BrowserWindow.getFocusedWindow();
+      const result = await dialog.showOpenDialog(dialogParent, {
         title: "Import Theme Profile",
         filters: [
           {
