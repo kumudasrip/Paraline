@@ -245,6 +245,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const colorModeSelector = document.getElementById('color-mode-selector');
+    if (colorModeSelector) {
+        colorModeSelector.addEventListener('change', (e) => {
+            if (window.visualizerSettings) {
+                window.visualizerSettings.update({
+                    colorMode: e.target.value
+                });
+            }
+        });
+    }
+
     // ----------------------------------------
     // PRESET LOGIC (ADVANCED TAB)
     // ----------------------------------------
@@ -572,6 +583,10 @@ refreshThemeProfiles();
             if (settings.performanceMode) {
                 performanceModeSelector.value = settings.performanceMode;
             }
+
+            if (settings.colorMode) {
+                colorModeSelector.value = settings.colorMode;
+            }
             
             const launchCheckbox = document.getElementById('launch-on-startup-checkbox');
             if (launchCheckbox) {
@@ -630,6 +645,9 @@ refreshThemeProfiles();
             if (themeSelector.value === 'auroraDrift' && nextSettings.auroraDrift) {
                 Object.assign(cachedSettings.auroraDrift || {}, nextSettings.auroraDrift);
                 syncAuroraUI();
+            }
+            if (nextSettings.colorMode !== undefined && colorModeSelector) {
+                colorModeSelector.value = nextSettings.colorMode;
             }
         });
     } else {

@@ -2,6 +2,7 @@
   const {
     clamp01,
     getGlowMultiplier,
+    hexToRgb,
     applyOptimizedShadow,
     getPerformanceMultiplier
   } = window.ParalineShared;
@@ -116,6 +117,27 @@
     return value - Math.floor(value);
   }
 
+  function mixChannel(a, b, amount) {
+    return a + (b - a) * amount;
+  }
+
+  function brighten(color, amount) {
+    return color.map((channel) => Math.round(mixChannel(channel, 255, amount)));
+  }
+
+  function getParticlePalette(settings = {}) {
+    if (Array.isArray(settings.customColors) && settings.customColors.length) {
+      const fills = settings.customColors.map(hexToRgb);
+
+      return {
+        fills,
+        glows: fills.map((color) => brighten(color, 0.26))
+      };
+    }
+
+    return PARTICLE_COLORS;
+  }
+
   function resetThemeState() {
     particles = [];
     lastTime = 0;
@@ -212,8 +234,8 @@
     });
   }
 
-  function drawSnowParticle(context, particle, energy, glowMultiplier, performanceMode = 'balanced') {
-    const { fills, glows } = PARTICLE_COLORS;
+  function drawSnowParticle(context, particle, energy, glowMultiplier, palette, performanceMode = 'balanced') {
+    const { fills, glows } = palette;
     const fill = fills[particle.colorIndex % fills.length];
     const glow = glows[particle.colorIndex % glows.length];
     const fade = clamp01(1 - particle.y / Math.max(1, particle.limitY));
@@ -251,11 +273,12 @@
     updateParticles(width, height, time, delta, settings, smoothedEnergy);
 
     const glowMultiplier = getGlowMultiplier(settings.glowStrength);
+    const particlePalette = getParticlePalette(settings);
     context.globalAlpha = 1;
     context.lineCap = "round";
 
     for (const particle of particles) {
-      drawSnowParticle(context, particle, smoothedEnergy, glowMultiplier, performanceMode);
+      drawSnowParticle(context, particle, smoothedEnergy, glowMultiplier, particlePalette, performanceMode);
     }
 
     context.shadowBlur = 0;

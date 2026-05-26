@@ -91,8 +91,11 @@ let edgeGradient;
 let flowTravelDistance = 0;
 let visualizerState = {
   selectedTheme: "ambientWave",
+  colorMode: "manual",
   performanceMode: "balanced",
   fpsLimit: "default",
+  systemAppearance: "dark",
+  systemAccentColor: "#4facfe",
   ambientWave: {
     tone: "blue",
     sensitivity: "medium",
@@ -209,44 +212,239 @@ let visualizerState = {
 const params = new URLSearchParams(window.location.search);
 const debugEnabled = params.get("debug") === "1";
 
+const ADAPTIVE_FALLBACK_ACCENT = "#4facfe";
+const ADAPTIVE_TRANSITION_RATE = 0.14;
+
+let adaptivePaletteState = {
+  current: [],
+  target: [],
+  key: ""
+};
+
+function normalizeHexColor(color, fallback = ADAPTIVE_FALLBACK_ACCENT) {
+  if (typeof color !== "string") {
+    return fallback;
+  }
+
+  const normalized = color.trim().replace(/^#/, "");
+
+  if (normalized.length === 8) {
+    return `#${normalized.slice(0, 6)}`;
+  }
+
+  if (normalized.length === 6) {
+    return `#${normalized}`;
+  }
+
+  return fallback;
+}
+
+function hexToRgbTriplet(hexColor) {
+  const normalized = normalizeHexColor(hexColor).slice(1);
+  return [
+    Number.parseInt(normalized.slice(0, 2), 16),
+    Number.parseInt(normalized.slice(2, 4), 16),
+    Number.parseInt(normalized.slice(4, 6), 16)
+  ];
+}
+
+function mixChannel(a, b, amount) {
+  return a + (b - a) * amount;
+}
+
+function mixRgb(colorA, colorB, amount) {
+  return colorA.map((channel, index) => mixChannel(channel, colorB[index], amount));
+}
+
+function shiftRgb(color, amount) {
+  const anchor = amount >= 0 ? [255, 255, 255] : [0, 0, 0];
+  return mixRgb(color, anchor, Math.min(1, Math.abs(amount)));
+}
+
+function rgbToHex(color) {
+  return `#${color.map((channel) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function clonePalette(palette) {
+  return palette.map((color) => [ ...color ]);
+}
+
+function buildAdaptivePalette(themeId) {
+  const appearance = visualizerState.systemAppearance === "light" ? "light" : "dark";
+  const accent = hexToRgbTriplet(visualizerState.systemAccentColor || ADAPTIVE_FALLBACK_ACCENT);
+
+  if (themeId === "ambientWave") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, -0.24), shiftRgb(accent, 0.08), shiftRgb(accent, 0.36)]
+      : [shiftRgb(accent, -0.34), shiftRgb(accent, -0.04), shiftRgb(accent, 0.18)];
+  }
+
+  if (themeId === "reactiveBorder" || themeId === "flowBorder") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, -0.2), accent, shiftRgb(accent, 0.42)]
+      : [shiftRgb(accent, -0.32), shiftRgb(accent, -0.06), shiftRgb(accent, 0.28)];
+  }
+
+  if (themeId === "sideBars" || themeId === "sideBraids") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, 0.22), accent, shiftRgb(accent, 0.48)]
+      : [shiftRgb(accent, -0.24), shiftRgb(accent, 0.06), shiftRgb(accent, 0.24)];
+  }
+
+  if (themeId === "edgeCrystals") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, -0.12), shiftRgb(accent, 0.18), shiftRgb(accent, 0.5)]
+      : [shiftRgb(accent, -0.22), shiftRgb(accent, 0.08), shiftRgb(accent, 0.3)];
+  }
+
+  if (themeId === "flatRipples" || themeId === "rippleFlow") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, -0.18), accent, shiftRgb(accent, 0.28)]
+      : [shiftRgb(accent, -0.3), shiftRgb(accent, -0.02), shiftRgb(accent, 0.18)];
+  }
+
+  if (themeId === "dotParticles" || themeId === "snowBubbleParticles") {
+    return appearance === "dark"
+      ? [shiftRgb(accent, -0.3), shiftRgb(accent, 0.04), shiftRgb(accent, 0.34)]
+      : [shiftRgb(accent, -0.38), shiftRgb(accent, -0.08), shiftRgb(accent, 0.2)];
+  }
+
+  return appearance === "dark"
+    ? [shiftRgb(accent, -0.22), accent, shiftRgb(accent, 0.38)]
+    : [shiftRgb(accent, -0.3), shiftRgb(accent, -0.02), shiftRgb(accent, 0.2)];
+}
+
+function syncAdaptivePaletteTarget() {
+  const paletteKey = [
+    visualizerState.selectedTheme,
+    visualizerState.systemAppearance,
+    normalizeHexColor(visualizerState.systemAccentColor || ADAPTIVE_FALLBACK_ACCENT)
+  ].join(":");
+
+  if (adaptivePaletteState.key === paletteKey) {
+    return false;
+  }
+
+  adaptivePaletteState.key = paletteKey;
+  adaptivePaletteState.target = buildAdaptivePalette(visualizerState.selectedTheme);
+
+  if (!adaptivePaletteState.current.length) {
+    adaptivePaletteState.current = clonePalette(adaptivePaletteState.target);
+  }
+
+  return true;
+}
+
+function stepAdaptivePalette() {
+  if (visualizerState.colorMode !== "adaptive") {
+    return false;
+  }
+
+  let paletteChanged = syncAdaptivePaletteTarget();
+
+  if (!adaptivePaletteState.current.length) {
+    adaptivePaletteState.current = clonePalette(adaptivePaletteState.target);
+    return true;
+  }
+
+  adaptivePaletteState.current = adaptivePaletteState.current.map((currentColor, colorIndex) => {
+    const targetColor = adaptivePaletteState.target[colorIndex] || currentColor;
+
+    return currentColor.map((channel, channelIndex) => {
+      const nextChannel = mixChannel(channel, targetColor[channelIndex], ADAPTIVE_TRANSITION_RATE);
+
+      if (Math.abs(nextChannel - channel) > 0.25) {
+        paletteChanged = true;
+      }
+
+      return nextChannel;
+    });
+  });
+
+  return paletteChanged;
+}
+
+function getAdaptivePaletteHex() {
+  syncAdaptivePaletteTarget();
+
+  if (!adaptivePaletteState.current.length) {
+    adaptivePaletteState.current = clonePalette(adaptivePaletteState.target);
+  }
+
+  return adaptivePaletteState.current.map(rgbToHex);
+}
+
+function getResolvedThemeSettings(themeId, settings) {
+  if (visualizerState.colorMode !== "adaptive") {
+    return settings;
+  }
+
+  const adaptiveColors = getAdaptivePaletteHex();
+
+  if (themeId === "ambientWave") {
+    return {
+      ...settings,
+      tone: "custom",
+      customColors: adaptiveColors
+    };
+  }
+
+  if (["reactiveBorder", "flowBorder", "sideBars", "flatRipples", "rippleFlow", "edgeCrystals", "sideBraids"].includes(themeId)) {
+    return {
+      ...settings,
+      colorStyle: "custom",
+      customColors: adaptiveColors
+    };
+  }
+
+  if (themeId === "dotParticles" || themeId === "snowBubbleParticles") {
+    return {
+      ...settings,
+      customColors: adaptiveColors
+    };
+  }
+
+  return settings;
+}
+
 function getAmbientWaveSettings() {
-  return visualizerState.ambientWave || {};
+  return getResolvedThemeSettings("ambientWave", visualizerState.ambientWave || {});
 }
 
 function getReactiveBorderSettings() {
-  return visualizerState.reactiveBorder || {};
+  return getResolvedThemeSettings("reactiveBorder", visualizerState.reactiveBorder || {});
 }
 
 function getFlowBorderSettings() {
-  return visualizerState.flowBorder || {};
+  return getResolvedThemeSettings("flowBorder", visualizerState.flowBorder || {});
 }
 
 function getSideBarsSettings() {
-  return visualizerState.sideBars || {};
+  return getResolvedThemeSettings("sideBars", visualizerState.sideBars || {});
 }
 
 function getFlatRipplesSettings() {
-  return visualizerState.flatRipples || {};
+  return getResolvedThemeSettings("flatRipples", visualizerState.flatRipples || {});
 }
 
 function getDotParticlesSettings() {
-  return visualizerState.dotParticles || {};
+  return getResolvedThemeSettings("dotParticles", visualizerState.dotParticles || {});
 }
 
 function getRippleFlowSettings() {
-  return visualizerState.rippleFlow || {};
+  return getResolvedThemeSettings("rippleFlow", visualizerState.rippleFlow || {});
 }
 
 function getSnowBubbleParticlesSettings() {
-  return visualizerState.snowBubbleParticles || {};
+  return getResolvedThemeSettings("snowBubbleParticles", visualizerState.snowBubbleParticles || {});
 }
 
 function getEdgeCrystalsSettings() {
-  return visualizerState.edgeCrystals || {};
+  return getResolvedThemeSettings("edgeCrystals", visualizerState.edgeCrystals || {});
 }
 
 function getSideBraidsSettings() {
-  return visualizerState.sideBraids || {};
+  return getResolvedThemeSettings("sideBraids", visualizerState.sideBraids || {});
 }
 
 function getAuroraDriftSettings() {
@@ -449,6 +647,12 @@ function renderFrame(now) {
   }
 
   updateAudioLevel(now);
+
+  const adaptivePaletteChanged = stepAdaptivePalette();
+
+  if (adaptivePaletteChanged && visualizerState.selectedTheme === "ambientWave") {
+    rebuildCachedPaint();
+  }
 
   context.clearRect(0, 0, width, height);
 

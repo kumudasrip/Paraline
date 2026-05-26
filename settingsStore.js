@@ -4,6 +4,7 @@ const path = require("path");
 const DEFAULT_SETTINGS = Object.freeze({
   launchOnStartup: false,
   selectedTheme: "ambientWave",
+  colorMode: "manual",
   performanceMode: "balanced",
   fpsLimit: "default",
   ambientWave: Object.freeze({
@@ -131,6 +132,7 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 
 const VALID_MAIN_THEMES = new Set(["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids", "auroraDrift"]);
+const VALID_COLOR_MODES = new Set(["manual", "adaptive"]);
 const VALID_PERFORMANCE_MODES = new Set(["performance", "balanced", "quality"]);
 const VALID_FPS_LIMITS = new Set(["default", "battery", "unlocked"]);
 const VALID_AMBIENT_TONES = new Set(["blue", "purple", "warm", "custom"]);
@@ -177,7 +179,9 @@ function createDefaultSettings() {
   return {
     launchOnStartup: DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: DEFAULT_SETTINGS.selectedTheme,
+    colorMode: DEFAULT_SETTINGS.colorMode,
     performanceMode: DEFAULT_SETTINGS.performanceMode,
+    fpsLimit: DEFAULT_SETTINGS.fpsLimit,
     ambientWave: { ...DEFAULT_SETTINGS.ambientWave },
     reactiveBorder: { ...DEFAULT_SETTINGS.reactiveBorder },
     flowBorder: { ...DEFAULT_SETTINGS.flowBorder },
@@ -477,6 +481,7 @@ function sanitizeSettings(input = {}) {
   return {
     launchOnStartup: typeof source.launchOnStartup === "boolean" ? source.launchOnStartup : DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
+    colorMode: pick(source.colorMode, VALID_COLOR_MODES, DEFAULT_SETTINGS.colorMode),
     performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
     fpsLimit: pick(source.fpsLimit, VALID_FPS_LIMITS, DEFAULT_SETTINGS.fpsLimit),
     ambientWave: sanitizeAmbientWave(source.ambientWave),
