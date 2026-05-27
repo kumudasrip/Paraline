@@ -184,7 +184,9 @@ function createDefaultSettings() {
   return {
     launchOnStartup: DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: DEFAULT_SETTINGS.selectedTheme,
+    themeAutomation: { ...DEFAULT_SETTINGS.themeAutomation },
     performanceMode: DEFAULT_SETTINGS.performanceMode,
+    fpsLimit: DEFAULT_SETTINGS.fpsLimit,
     ambientWave: { ...DEFAULT_SETTINGS.ambientWave },
     reactiveBorder: { ...DEFAULT_SETTINGS.reactiveBorder },
     flowBorder: { ...DEFAULT_SETTINGS.flowBorder },
@@ -233,6 +235,18 @@ function legacySensitivityToLevel(value) {
   }
 
   return "high";
+}
+
+function sanitizeThemeAutomation(input = {}) {
+  return {
+    enabled: typeof input.enabled === "boolean" ? input.enabled : DEFAULT_SETTINGS.themeAutomation.enabled,
+    checkIntervalMinutes: typeof input.checkIntervalMinutes === "number"
+      ? Math.max(1, Math.min(120, input.checkIntervalMinutes))
+      : DEFAULT_SETTINGS.themeAutomation.checkIntervalMinutes,
+    mode: typeof input.mode === "string" ? input.mode : DEFAULT_SETTINGS.themeAutomation.mode,
+    dayTheme: pick(input.dayTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.themeAutomation.dayTheme),
+    nightTheme: pick(input.nightTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.themeAutomation.nightTheme)
+  };
 }
 
 function sanitizeAmbientWave(input = {}) {
@@ -484,6 +498,7 @@ function sanitizeSettings(input = {}) {
   return {
     launchOnStartup: typeof source.launchOnStartup === "boolean" ? source.launchOnStartup : DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
+    themeAutomation: sanitizeThemeAutomation(source.themeAutomation),
     performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
     fpsLimit: pick(source.fpsLimit, VALID_FPS_LIMITS, DEFAULT_SETTINGS.fpsLimit),
     ambientWave: sanitizeAmbientWave(source.ambientWave),
