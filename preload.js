@@ -70,7 +70,6 @@ contextBridge.exposeInMainWorld("visualizerSettings", {
     return () => {
       ipcRenderer.removeListener("show-context-menu", wrapped);
     };
-    return ipcRenderer.invoke("visualizer-settings:update", patch);
   }
 });
 

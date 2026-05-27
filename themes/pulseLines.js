@@ -300,8 +300,8 @@
     const primaryColor = resolveRippleColor(settings, 0.12, Math.min(1, profile.alpha * (isMulticolor ? 1.16 : 1.06)));
     const echoColor = resolveRippleColor(settings, 0.78, profile.alpha * (isMulticolor ? 0.78 : 0.64));
 
-    drawVerticalRippleLine(context, leftBase, height, time, motion.level, profile, primaryColor, 1);
-    drawVerticalRippleLine(context, rightBase, height, time, motion.level, profile, primaryColor, -1);
+    drawVerticalRippleLine(context, leftBase, height, time, motion.level, profile, primaryColor, 1, performanceMode);
+    drawVerticalRippleLine(context, rightBase, height, time, motion.level, profile, primaryColor, -1, performanceMode);
 
     const echoProfile = {
       ...profile,
@@ -341,7 +341,7 @@
     const primaryColor = resolveRippleColor(settings, 0.22, Math.min(1, profile.alpha * (isMulticolor ? 1.16 : 1.06)));
     const echoColor = resolveRippleColor(settings, 0.82, profile.alpha * (isMulticolor ? 0.78 : 0.64));
 
-    drawHorizontalRippleLine(context, width, yBase, time, motion.level, profile, primaryColor);
+    drawHorizontalRippleLine(context, width, yBase, time, motion.level, profile, primaryColor, performanceMode);
 
     const echoProfile = {
       ...profile,

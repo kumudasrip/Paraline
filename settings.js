@@ -407,6 +407,7 @@ refreshThemeProfiles();
         themePatch.customSpeed = parseInt(speedSlider.value, 10);
 
         // Update the cached settings so the UI dropdowns immediately reflect "Custom"
+        if (!cachedSettings[activeTheme]) cachedSettings[activeTheme] = {};
         if (schema.colorStyle) cachedSettings[activeTheme].colorStyle = "custom";
         if (schema.tone) cachedSettings[activeTheme].tone = "custom";
         renderThemeSettings(activeTheme); // Refresh UI dropdowns to show 'Custom' selected
