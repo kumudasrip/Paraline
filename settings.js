@@ -83,6 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
             glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong", "custom"] },
             braidWidth: { label: "Braid Width", options: ["thin", "medium", "thick", "custom"] },
             flowDirection: { label: "Flow Direction", options: ["topDown", "bottomUp"] }
+        },
+        auroraDrift: {
+            auroraStyle: { label: "Aurora Style", options: ["ambient", "cinematic", "energetic"] },
+            intensity: { label: "Intensity", options: ["subtle", "balanced", "vivid"] },
+            height: { label: "Height", options: ["low", "medium", "tall"] },
+            glowStrength: { label: "Glow Strength", options: ["soft", "medium", "strong"] },
+            motionSpeed: { label: "Motion Speed", options: ["calm", "balanced", "fast"] },
+            colorPalette: { label: "Color Palette", options: ["cyanViolet", "emeraldSky", "sunsetDream", "frozenBlue", "monochrome"] },
+            audioReactivity: { label: "Audio Reactivity", options: ["subtle", "balanced", "responsive"] },
+            softness: { label: "Softness", options: ["misty", "smooth", "defined"] },
+            layerDensity: { label: "Layer Density", options: ["light", "balanced", "rich"] }
         }
     };
 
@@ -130,6 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         updateAdvancedSliders(themeId);
+        if (typeof toggleAdvancedControls === 'function') {
+            toggleAdvancedControls(themeId);
+        }
     }
 
     function updateAdvancedSliders(theme) {
@@ -200,6 +214,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const launchCheckbox = document.getElementById('launch-on-startup-checkbox');
+    if (launchCheckbox) {
+        launchCheckbox.addEventListener('change', (e) => {
+            if (window.visualizerSettings) {
+                window.visualizerSettings.update({
+                    launchOnStartup: e.target.checked
+                });
+            }
+        });
+    }
+
+    const fpsLimitSelector = document.getElementById('fps-limit-selector');
+    if (fpsLimitSelector) {
+        fpsLimitSelector.addEventListener('change', (e) => {
+            updateFpsOutcomeDisplay(e.target.value);
+            if (window.visualizerSettings) {
+                window.visualizerSettings.update({
+                    fpsLimit: e.target.value
+                });
+            }
+        });
+    }
+
+    function updateFpsOutcomeDisplay(val) {
+        document.querySelectorAll('.fps-outcome').forEach(el => el.style.display = 'none');
+        const targetEl = document.getElementById(`fps-outcome-${val}`);
+        if (targetEl) {
+            targetEl.style.display = 'block';
+        }
+    }
+
     // ----------------------------------------
     // PRESET LOGIC (ADVANCED TAB)
     // ----------------------------------------
@@ -209,6 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const presetSelector = document.getElementById('preset-selector');
     const savePresetBtn = document.getElementById('btn-save-preset');
     const presetNameInput = document.getElementById('preset-name-input');
+    const themeProfileSelector = document.getElementById('theme-profile-selector');
+    const themeProfileNameInput = document.getElementById('theme-profile-name');
+
+    const btnSaveThemeProfile = document.getElementById('btn-save-theme-profile');
+    const btnLoadThemeProfile = document.getElementById('btn-load-theme-profile');
+    const btnDeleteThemeProfile = document.getElementById('btn-delete-theme-profile');
+    const btnExportThemeProfile = document.getElementById('btn-export-theme-profile');
+    const btnImportThemeProfile = document.getElementById('btn-import-theme-profile');
+    const btnResetThemeProfile = document.getElementById('btn-reset-theme-profile');
 
     let presets = {
         "Ocean Blue": ["#00f2fe", "#4facfe", "#8ee2ff"],
@@ -260,6 +314,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updatePresetDropdown();
+    async function refreshThemeProfiles() {
+    if (!window.paralineApp) return;
+
+    const profiles = await window.paralineApp.getThemeProfiles();
+
+    themeProfileSelector.innerHTML =
+        '<option value="">Select Theme Profile</option>';
+
+    Object.keys(profiles).forEach(profileName => {
+        const option = document.createElement('option');
+
+        option.value = profileName;
+        option.textContent = profileName;
+
+        themeProfileSelector.appendChild(option);
+    });
+}
+
+refreshThemeProfiles();
 
     // ----------------------------------------
     // SLIDER UPDATES
@@ -360,6 +433,72 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnReload = document.getElementById('btn-reload');
         const btnGithub = document.getElementById('btn-github');
         const btnLanding = document.getElementById('btn-landing');
+        btnSaveThemeProfile.addEventListener('click', async () => {
+            const profileName = themeProfileNameInput.value.trim();
+
+            if (!profileName) return;
+
+            await window.paralineApp.saveThemeProfile(profileName);
+
+            themeProfileNameInput.value = '';
+            alert(`Theme profile "${profileName}" saved!`);
+
+            refreshThemeProfiles();
+        });
+
+        btnLoadThemeProfile.addEventListener('click', async () => {
+            const selectedProfile = themeProfileSelector.value;
+
+            if (!selectedProfile) return;
+
+            const settings =
+                await window.paralineApp.loadThemeProfile(selectedProfile);
+
+            if (!settings) return;
+
+            // Instantly reloads the page to perfectly synchronize all sliders, colors, and controls in the UI
+            location.reload();
+        });
+
+        btnDeleteThemeProfile.addEventListener('click', async () => {
+            const selectedProfile = themeProfileSelector.value;
+
+            if (!selectedProfile) return;
+
+            await window.paralineApp.deleteThemeProfile(selectedProfile);
+            alert("Theme profile deleted successfully.");
+
+            refreshThemeProfiles();
+        });
+
+        btnExportThemeProfile.addEventListener('click', async () => {
+            const selectedProfile = themeProfileSelector.value;
+
+            if (!selectedProfile) return;
+
+            const res = await window.paralineApp.exportThemeProfile(selectedProfile);
+            if (res && res.success) {
+                alert("Theme profile exported successfully!");
+            }
+        });
+
+        btnImportThemeProfile.addEventListener('click', async () => {
+            const res = await window.paralineApp.importThemeProfile();
+
+            if (res && res.success) {
+                alert(`Theme profile "${res.profileName}" imported successfully!`);
+                refreshThemeProfiles();
+            } else if (res && res.error) {
+                alert(`Failed to import theme: ${res.error}`);
+            }
+        });
+
+        btnResetThemeProfile.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to restore default settings? This will reset all your theme customizations.")) {
+                await window.paralineApp.resetThemeSettings();
+                location.reload();
+            }
+        });
 
         btnHide.addEventListener('click', async () => {
             const isHidden = await window.paralineApp.toggleHide();
@@ -434,6 +573,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 performanceModeSelector.value = settings.performanceMode;
             }
             
+            const launchCheckbox = document.getElementById('launch-on-startup-checkbox');
+            if (launchCheckbox) {
+                launchCheckbox.checked = !!settings.launchOnStartup;
+            }
+            
+            if (settings.fpsLimit) {
+                const selector = document.getElementById('fps-limit-selector');
+                if (selector) {
+                    selector.value = settings.fpsLimit;
+                    updateFpsOutcomeDisplay(settings.fpsLimit);
+                }
+            }
+            
             // set custom variables into UI if they exist globally or on the active theme
             if (settings.customColors && settings.customColors.length === 3) {
                 color1.value = settings.customColors[0];
@@ -461,9 +613,579 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextSettings.hidden !== undefined) {
                 updateHideButtonState(nextSettings.hidden);
             }
+            if (nextSettings.launchOnStartup !== undefined) {
+                const checkbox = document.getElementById('launch-on-startup-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !!nextSettings.launchOnStartup;
+                }
+            }
+            if (nextSettings.fpsLimit !== undefined) {
+                const selector = document.getElementById('fps-limit-selector');
+                if (selector) {
+                    selector.value = nextSettings.fpsLimit;
+                    updateFpsOutcomeDisplay(nextSettings.fpsLimit);
+                }
+            }
+            // Sync Aurora advanced controls if they are currently visible
+            if (themeSelector.value === 'auroraDrift' && nextSettings.auroraDrift) {
+                Object.assign(cachedSettings.auroraDrift || {}, nextSettings.auroraDrift);
+                syncAuroraUI();
+            }
         });
     } else {
         renderThemeSettings("ambientWave");
+    }
+
+    // ============================================================
+    // PREMIUM ADVANCED SETTINGS SYSTEM — AURORA DRIFT ENGINE
+    // ============================================================
+
+    const AURORA_PRESETS = {
+        dreamscape: {
+            gradientStops: [
+                { pos: 0.0, color: "#2e0854" },
+                { pos: 0.4, color: "#180b6b" },
+                { pos: 0.7, color: "#0077ff" },
+                { pos: 1.0, color: "#00f2fe" }
+            ],
+            baseGlowRadius: 1.25,
+            peakGlowRadius: 0.8,
+            crestBrightness: 0.75,
+            bloomStrength: 0.85,
+            glowFalloff: 1.3,
+            primaryFrequency: 0.65,
+            secondaryFrequency: 0.7,
+            turbulenceComplexity: 0.6,
+            motionSmoothness: 1.8,
+            driftSpeed: 0.5,
+            bassInfluence: 0.6,
+            midInfluence: 0.75,
+            highShimmer: 0.4,
+            audioSmoothing: 1.4,
+            peakSensitivity: 0.6,
+            ribbonHeight: 1.1,
+            ribbonWidth: 1.2,
+            edgeSoftness: 1.5,
+            layerSeparation: 1.3,
+            crestSharpness: 0.6,
+            layerCount: 4,
+            backgroundHaze: 1.4,
+            foregroundHighlight: 0.65,
+            parallaxDepth: 0.85,
+            ambientOpacity: 1.35,
+            colorSaturation: 0.85,
+            atmosphericFade: 1.4,
+            edgeFeathering: 1.5
+        },
+        neonStorm: {
+            gradientStops: [
+                { pos: 0.0, color: "#ff007f" },
+                { pos: 0.35, color: "#7f00ff" },
+                { pos: 0.65, color: "#00e5ff" },
+                { pos: 1.0, color: "#ff512f" }
+            ],
+            baseGlowRadius: 0.85,
+            peakGlowRadius: 1.85,
+            crestBrightness: 1.6,
+            bloomStrength: 1.8,
+            glowFalloff: 0.75,
+            primaryFrequency: 1.55,
+            secondaryFrequency: 1.6,
+            turbulenceComplexity: 1.65,
+            motionSmoothness: 0.6,
+            driftSpeed: 1.6,
+            bassInfluence: 1.9,
+            midInfluence: 1.6,
+            highShimmer: 1.85,
+            audioSmoothing: 0.65,
+            peakSensitivity: 1.75,
+            ribbonHeight: 1.55,
+            ribbonWidth: 0.95,
+            edgeSoftness: 0.65,
+            layerSeparation: 0.85,
+            crestSharpness: 1.8,
+            layerCount: 6,
+            backgroundHaze: 0.6,
+            foregroundHighlight: 1.8,
+            parallaxDepth: 1.45,
+            ambientOpacity: 0.65,
+            colorSaturation: 1.75,
+            atmosphericFade: 0.75,
+            edgeFeathering: 0.8
+        },
+        frozenSky: {
+            gradientStops: [
+                { pos: 0.0, color: "#e6f8ff" },
+                { pos: 0.35, color: "#b3e5fc" },
+                { pos: 0.7, color: "#81d4fa" },
+                { pos: 1.0, color: "#0288d1" }
+            ],
+            baseGlowRadius: 1.5,
+            peakGlowRadius: 0.6,
+            crestBrightness: 0.65,
+            bloomStrength: 0.9,
+            glowFalloff: 1.6,
+            primaryFrequency: 0.45,
+            secondaryFrequency: 0.55,
+            turbulenceComplexity: 0.45,
+            motionSmoothness: 2.2,
+            driftSpeed: 0.35,
+            bassInfluence: 0.3,
+            midInfluence: 0.45,
+            highShimmer: 0.3,
+            audioSmoothing: 1.8,
+            peakSensitivity: 0.4,
+            ribbonHeight: 0.8,
+            ribbonWidth: 1.35,
+            edgeSoftness: 1.8,
+            layerSeparation: 1.6,
+            crestSharpness: 0.45,
+            layerCount: 3,
+            backgroundHaze: 1.75,
+            foregroundHighlight: 0.45,
+            parallaxDepth: 0.6,
+            ambientOpacity: 1.6,
+            colorSaturation: 0.55,
+            atmosphericFade: 1.75,
+            edgeFeathering: 1.8
+        },
+        deepCosmos: {
+            gradientStops: [
+                { pos: 0.0, color: "#0d0221" },
+                { pos: 0.3, color: "#00e5ff" },
+                { pos: 0.6, color: "#00ff7f" },
+                { pos: 1.0, color: "#ff007f" }
+            ],
+            baseGlowRadius: 1.15,
+            peakGlowRadius: 1.35,
+            crestBrightness: 1.25,
+            bloomStrength: 1.35,
+            glowFalloff: 1.1,
+            primaryFrequency: 1.0,
+            secondaryFrequency: 1.15,
+            turbulenceComplexity: 1.1,
+            motionSmoothness: 1.1,
+            driftSpeed: 1.0,
+            bassInfluence: 1.2,
+            midInfluence: 1.15,
+            highShimmer: 1.25,
+            audioSmoothing: 0.95,
+            peakSensitivity: 1.1,
+            ribbonHeight: 1.15,
+            ribbonWidth: 1.1,
+            edgeSoftness: 1.0,
+            layerSeparation: 1.1,
+            crestSharpness: 1.15,
+            layerCount: 5,
+            backgroundHaze: 1.15,
+            foregroundHighlight: 1.15,
+            parallaxDepth: 1.1,
+            ambientOpacity: 1.15,
+            colorSaturation: 1.25,
+            atmosphericFade: 1.15,
+            edgeFeathering: 1.15
+        },
+        softHorizon: {
+            gradientStops: [
+                { pos: 0.0, color: "#ffffff" },
+                { pos: 0.35, color: "#d2d7df" },
+                { pos: 0.7, color: "#adb5bd" },
+                { pos: 1.0, color: "#495057" }
+            ],
+            baseGlowRadius: 1.6,
+            peakGlowRadius: 0.5,
+            crestBrightness: 0.6,
+            bloomStrength: 0.7,
+            glowFalloff: 1.5,
+            primaryFrequency: 0.5,
+            secondaryFrequency: 0.5,
+            turbulenceComplexity: 0.4,
+            motionSmoothness: 2.0,
+            driftSpeed: 0.4,
+            bassInfluence: 0.4,
+            midInfluence: 0.5,
+            highShimmer: 0.3,
+            audioSmoothing: 1.6,
+            peakSensitivity: 0.5,
+            ribbonHeight: 0.85,
+            ribbonWidth: 1.4,
+            edgeSoftness: 1.6,
+            layerSeparation: 1.4,
+            crestSharpness: 0.5,
+            layerCount: 4,
+            backgroundHaze: 1.5,
+            foregroundHighlight: 0.5,
+            parallaxDepth: 0.7,
+            ambientOpacity: 1.4,
+            colorSaturation: 0.0,
+            atmosphericFade: 1.5,
+            edgeFeathering: 1.6
+        }
+    };
+
+    let customAuroraPresets = {};
+    try {
+        const saved = localStorage.getItem('paraline_aurora_presets');
+        if (saved) {
+            customAuroraPresets = JSON.parse(saved);
+        }
+    } catch(e) {}
+
+    function toggleAdvancedControls(themeId) {
+        const stdControls = document.getElementById('standard-advanced-controls');
+        const auroraControls = document.getElementById('aurora-advanced-controls');
+        if (stdControls && auroraControls) {
+            if (themeId === 'auroraDrift') {
+                stdControls.style.display = 'none';
+                auroraControls.style.display = 'block';
+                syncAuroraUI();
+            } else {
+                stdControls.style.display = 'block';
+                auroraControls.style.display = 'none';
+            }
+        }
+    }
+
+    function dispatchAuroraAdvancedUpdate(patch) {
+        if (!window.visualizerSettings) return;
+        if (!cachedSettings.auroraDrift) {
+            cachedSettings.auroraDrift = {};
+        }
+        Object.assign(cachedSettings.auroraDrift, patch);
+        window.visualizerSettings.update({
+            selectedTheme: 'auroraDrift',
+            auroraDrift: cachedSettings.auroraDrift
+        });
+    }
+
+    function syncAuroraUI() {
+        const config = cachedSettings.auroraDrift || {};
+        
+        // 1. Sync sliders
+        document.querySelectorAll('.aurora-adv-trigger').forEach(slider => {
+            const key = slider.id.replace('adv-', '');
+            if (config[key] !== undefined) {
+                slider.value = config[key];
+                
+                const valLabel = document.getElementById(`val-${slider.id}`);
+                if (valLabel) {
+                    let val = parseFloat(config[key]);
+                    valLabel.textContent = val.toFixed(slider.id === 'adv-layerCount' ? 0 : 2);
+                }
+            }
+        });
+        
+        // 2. Render stops
+        renderAuroraGradientEditor();
+        
+        // 3. Update active preset card styling
+        document.querySelectorAll('.aurora-preset-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Refresh custom preset dropdown items
+        refreshAuroraPresetsDropdown();
+    }
+
+    function renderAuroraGradientEditor() {
+        const previewBar = document.getElementById('aurora-gradient-preview-bar');
+        const markersContainer = document.getElementById('aurora-stops-markers-container');
+        if (!previewBar || !markersContainer) return;
+        
+        let stops = cachedSettings.auroraDrift?.gradientStops;
+        if (!stops || !Array.isArray(stops) || stops.length < 2) {
+            stops = [
+                { pos: 0.0, color: "#00e5ff" },
+                { pos: 0.35, color: "#0077ff" },
+                { pos: 0.7, color: "#7f00ff" },
+                { pos: 1.0, color: "#ff007f" }
+            ];
+        }
+        
+        stops = [...stops].sort((a, b) => a.pos - b.pos);
+        
+        const gradientCss = `linear-gradient(to right, ${stops.map(s => `${s.color} ${s.pos * 100}%`).join(', ')})`;
+        previewBar.style.background = gradientCss;
+        
+        markersContainer.innerHTML = '';
+        
+        stops.forEach((stop, index) => {
+            const marker = document.createElement('div');
+            marker.className = 'aurora-stop-marker';
+            marker.style.left = `calc(${stop.pos * 100}% - 8px)`;
+            marker.style.background = stop.color;
+            marker.style.pointerEvents = 'auto';
+            marker.dataset.index = index;
+            
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.className = 'aurora-stop-picker';
+            colorPicker.value = stop.color;
+            colorPicker.style.position = 'absolute';
+            colorPicker.style.opacity = 0;
+            colorPicker.style.width = '18px';
+            colorPicker.style.height = '18px';
+            colorPicker.style.cursor = 'pointer';
+            colorPicker.style.top = '-2px';
+            colorPicker.style.left = '-2px';
+            
+            colorPicker.addEventListener('input', (e) => {
+                const newColor = e.target.value;
+                stops[index].color = newColor;
+                dispatchAuroraAdvancedUpdate({ gradientStops: stops });
+                renderAuroraGradientEditor();
+            });
+            marker.appendChild(colorPicker);
+            
+            if (stops.length > 2) {
+                const delBtn = document.createElement('div');
+                delBtn.className = 'aurora-stop-delete';
+                delBtn.innerHTML = '&times;';
+                delBtn.title = 'Remove Stop';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const newStops = stops.filter((_, idx) => idx !== index);
+                    dispatchAuroraAdvancedUpdate({ gradientStops: newStops });
+                    renderAuroraGradientEditor();
+                });
+                marker.appendChild(delBtn);
+            }
+            
+            let isDragging = false;
+            marker.addEventListener('mousedown', (e) => {
+                if (e.target.className === 'aurora-stop-delete') return;
+                isDragging = true;
+                e.preventDefault();
+                
+                const onMouseMove = (moveEvent) => {
+                    if (!isDragging) return;
+                    const rect = previewBar.getBoundingClientRect();
+                    let newPos = (moveEvent.clientX - rect.left) / rect.width;
+                    newPos = Math.max(0.0, Math.min(1.0, newPos));
+                    
+                    stops[index].pos = parseFloat(newPos.toFixed(3));
+                    marker.style.left = `calc(${newPos * 100}% - 8px)`;
+                    
+                    const liveStops = [...stops].sort((a, b) => a.pos - b.pos);
+                    previewBar.style.background = `linear-gradient(to right, ${liveStops.map(s => `${s.color} ${s.pos * 100}%`).join(', ')})`;
+                };
+                
+                const onMouseUp = () => {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    
+                    const finalStops = [...stops].sort((a, b) => a.pos - b.pos);
+                    dispatchAuroraAdvancedUpdate({ gradientStops: finalStops });
+                    renderAuroraGradientEditor();
+                };
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+            
+            markersContainer.appendChild(marker);
+        });
+    }
+
+    function lerpHex(c1, c2, frac) {
+        const hex = (c) => {
+            const val = parseInt(c.replace('#', ''), 16);
+            return [
+                (val >> 16) & 0xff,
+                (val >> 8) & 0xff,
+                val & 0xff
+            ];
+        };
+        const rgb1 = hex(c1);
+        const rgb2 = hex(c2);
+        const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * frac);
+        const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * frac);
+        const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * frac);
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function interpolateHexColor(t, stops) {
+        if (!stops || stops.length === 0) return "#ffffff";
+        const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+        
+        if (t <= sorted[0].pos) return sorted[0].color;
+        if (t >= sorted[sorted.length - 1].pos) return sorted[sorted.length - 1].color;
+        
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const curr = sorted[i];
+            const next = sorted[i + 1];
+            if (t >= curr.pos && t <= next.pos) {
+                const frac = (t - curr.pos) / (next.pos - curr.pos);
+                return lerpHex(curr.color, next.color, frac);
+            }
+        }
+        return "#ffffff";
+    }
+
+    function refreshAuroraPresetsDropdown() {
+        const select = document.getElementById('aurora-custom-preset-select');
+        if (!select) return;
+        select.innerHTML = '<option value="" disabled selected>Saved Profiles...</option>';
+        Object.keys(customAuroraPresets).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    // Set up interactive stops additions on preview bar click
+    const previewBar = document.getElementById('aurora-gradient-preview-bar');
+    if (previewBar) {
+        previewBar.addEventListener('click', (e) => {
+            if (e.target !== previewBar) return;
+            let stops = cachedSettings.auroraDrift?.gradientStops || [];
+            if (stops.length >= 6) {
+                alert("Maximum 6 gradient stops allowed!");
+                return;
+            }
+            
+            const rect = previewBar.getBoundingClientRect();
+            const clickPos = (e.clientX - rect.left) / rect.width;
+            const clampedPos = Math.max(0.01, Math.min(0.99, clickPos));
+            
+            const color = interpolateHexColor(clampedPos, stops);
+            const newStops = [...stops, { pos: parseFloat(clampedPos.toFixed(3)), color }];
+            newStops.sort((a, b) => a.pos - b.pos);
+            
+            dispatchAuroraAdvancedUpdate({ gradientStops: newStops });
+            renderAuroraGradientEditor();
+        });
+    }
+
+    // Reset Palette Button
+    const resetPaletteBtn = document.getElementById('btn-reset-aurora-palette');
+    if (resetPaletteBtn) {
+        resetPaletteBtn.addEventListener('click', () => {
+            const defaultStops = [
+                { pos: 0.0, color: "#00e5ff" },
+                { pos: 0.35, color: "#0077ff" },
+                { pos: 0.7, color: "#7f00ff" },
+                { pos: 1.0, color: "#ff007f" }
+            ];
+            dispatchAuroraAdvancedUpdate({ gradientStops: defaultStops });
+            renderAuroraGradientEditor();
+        });
+    }
+
+    // Tab switcher events
+    document.querySelectorAll('.aurora-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.aurora-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.querySelectorAll('.aurora-tab-content').forEach(content => {
+                content.classList.remove('active-content');
+            });
+            
+            const tabId = btn.dataset.tab;
+            const targetContent = document.getElementById(`aurora-tab-${tabId}`);
+            if (targetContent) {
+                targetContent.classList.add('active-content');
+            }
+        });
+    });
+
+    // Sub-sliders inputs events
+    document.querySelectorAll('.aurora-adv-trigger').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+            const key = e.target.id.replace('adv-', '');
+            let val = parseFloat(e.target.value);
+            if (e.target.id === 'adv-layerCount') {
+                val = Math.round(val);
+            }
+            
+            const valLabel = document.getElementById(`val-${e.target.id}`);
+            if (valLabel) {
+                valLabel.textContent = val.toFixed(e.target.id === 'adv-layerCount' ? 0 : 2);
+            }
+            
+            dispatchAuroraAdvancedUpdate({ [key]: val });
+        });
+    });
+
+    // Preset cards events
+    document.querySelectorAll('.aurora-preset-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const presetKey = card.dataset.preset;
+            const presetData = AURORA_PRESETS[presetKey];
+            if (presetData) {
+                dispatchAuroraAdvancedUpdate(presetData);
+                syncAuroraUI();
+                card.classList.add('selected');
+            }
+        });
+    });
+
+    // Save Preset button
+    const btnSave = document.getElementById('btn-save-aurora-preset');
+    const inputName = document.getElementById('aurora-preset-name-input');
+    if (btnSave && inputName) {
+        btnSave.addEventListener('click', () => {
+            const name = inputName.value.trim();
+            if (!name) {
+                alert("Please enter a profile name!");
+                return;
+            }
+            
+            const currentSettings = { ...cachedSettings.auroraDrift };
+            customAuroraPresets[name] = currentSettings;
+            
+            try {
+                localStorage.setItem('paraline_aurora_presets', JSON.stringify(customAuroraPresets));
+            } catch(e) {}
+            
+            refreshAuroraPresetsDropdown();
+            document.getElementById('aurora-custom-preset-select').value = name;
+            inputName.value = '';
+            alert(`Engine profile "${name}" successfully saved!`);
+        });
+    }
+
+    // Load Preset button
+    const btnLoad = document.getElementById('btn-load-aurora-preset');
+    const dropdownSelect = document.getElementById('aurora-custom-preset-select');
+    if (btnLoad && dropdownSelect) {
+        btnLoad.addEventListener('click', () => {
+            const name = dropdownSelect.value;
+            if (!name || !customAuroraPresets[name]) {
+                alert("Please select a valid saved profile first!");
+                return;
+            }
+            
+            const profileData = customAuroraPresets[name];
+            dispatchAuroraAdvancedUpdate(profileData);
+            syncAuroraUI();
+            alert(`Engine profile "${name}" successfully loaded!`);
+        });
+    }
+
+    // Delete Preset button
+    const btnDelete = document.getElementById('btn-delete-aurora-preset');
+    if (btnDelete && dropdownSelect) {
+        btnDelete.addEventListener('click', () => {
+            const name = dropdownSelect.value;
+            if (!name || !customAuroraPresets[name]) {
+                alert("Please select a profile to delete!");
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete profile "${name}"?`)) {
+                delete customAuroraPresets[name];
+                try {
+                    localStorage.setItem('paraline_aurora_presets', JSON.stringify(customAuroraPresets));
+                } catch(e) {}
+                
+                refreshAuroraPresetsDropdown();
+                alert(`Profile "${name}" successfully deleted!`);
+            }
+        });
     }
 });
 

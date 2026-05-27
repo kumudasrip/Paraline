@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, dialog } = require("electron");
 const path = require("path");
+const fs = require("fs");
 const { createAudioBridge } = require("./audioBridge");
-const { createDefaultSettings, createSettingsStore, createThemeDefaults } = require("./settingsStore");
+const { createDefaultSettings, createSettingsStore, createThemeDefaults, sanitizeSettings } = require("./settingsStore");
 const ThemeAgent = require('./themeAgent');
 
 let overlayWindow;
@@ -68,7 +69,8 @@ const THEME_LABELS = {
   rippleFlow: "Ripple Flow",
   snowBubbleParticles: "Snow Particles",
   edgeCrystals: "Edge Crystals",
-  sideBraids: "Side Braids"
+  sideBraids: "Side Braids",
+  auroraDrift: "Aurora Drift"
 };
 
 function createOverlayWindow() {
@@ -269,6 +271,44 @@ function resetAllSettings() {
   sendVisualizerSettings();
   refreshTrayMenu();
 }
+function saveThemeProfile(profileName) {
+  const profiles = settingsStore.loadProfiles();
+
+  profiles[profileName] = visualizerSettings;
+
+  settingsStore.saveProfiles(profiles);
+
+  return profiles;
+}
+
+function loadThemeProfile(profileName) {
+  const profiles = settingsStore.loadProfiles();
+
+  if (!profiles[profileName]) {
+    return null;
+  }
+
+  visualizerSettings = settingsStore.save(profiles[profileName]);
+
+  sendVisualizerSettings();
+  refreshTrayMenu();
+
+  return visualizerSettings;
+}
+
+function deleteThemeProfile(profileName) {
+  const profiles = settingsStore.loadProfiles();
+
+  delete profiles[profileName];
+
+  settingsStore.saveProfiles(profiles);
+
+  return profiles;
+}
+
+function getThemeProfiles() {
+  return settingsStore.loadProfiles();
+}
 
 function openExternalUrl(url) {
   shell.openExternal(url).catch(() => {
@@ -324,7 +364,8 @@ function buildMainThemeMenuItems() {
     { value: "rippleFlow", label: "Ripple Flow" },
     { value: "snowBubbleParticles", label: "Snow Particles" },
     { value: "edgeCrystals", label: "Edge Crystals" },
-    { value: "sideBraids", label: "Side Braids" }
+    { value: "sideBraids", label: "Side Braids" },
+    { value: "auroraDrift", label: "Aurora Drift" }
   ];
 
   return themeOptions.map((themeOption) => ({
@@ -1003,6 +1044,10 @@ function buildActiveThemeMenuItems() {
     return buildSideBraidsMenuItems();
   }
 
+  if (visualizerSettings.selectedTheme === "auroraDrift") {
+    return []; // No settings in Phase 1
+  }
+
   return buildAmbientWaveMenuItems();
 }
 
@@ -1124,6 +1169,7 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   settingsStore = createSettingsStore(app.getPath("userData"));
   visualizerSettings = settingsStore.save(settingsStore.load());
   applyStartupSettings(visualizerSettings.launchOnStartup);
@@ -1203,6 +1249,117 @@ app.whenReady().then(() => {
 
   ipcMain.handle("app:reload-visualizer", () => {
     reloadVisualizer();
+  });
+
+  ipcMain.handle("theme-profiles:get", () => {
+    return getThemeProfiles();
+  });
+
+  ipcMain.handle("theme-profiles:save", (_event, profileName) => {
+    return saveThemeProfile(profileName);
+  });
+
+  ipcMain.handle("theme-profiles:load", (_event, profileName) => {
+    return loadThemeProfile(profileName);
+  });
+
+  ipcMain.handle("theme-profiles:delete", (_event, profileName) => {
+    return deleteThemeProfile(profileName);
+  });
+
+  ipcMain.handle("theme-profiles:reset", () => {
+    resetAllSettings();
+    return getRendererSettings();
+  });
+
+  ipcMain.handle("theme-profiles:export", async (_event, profileName) => {
+    const profiles = settingsStore.loadProfiles();
+
+    if (!profiles[profileName]) {
+      return { success: false };
+    }
+
+    const dialogParent = settingsWindow && !settingsWindow.isDestroyed()
+      ? settingsWindow
+      : BrowserWindow.getFocusedWindow();
+    const result = await dialog.showSaveDialog(dialogParent, {
+      title: "Export Theme Profile",
+      defaultPath: `${profileName}.json`,
+      filters: [
+        {
+          name: "JSON Files",
+          extensions: ["json"]
+        }
+      ]
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { success: false };
+    }
+
+    require("fs").writeFileSync(
+      result.filePath,
+      JSON.stringify(profiles[profileName], null, 2)
+    );
+
+    return { success: true };
+  });
+
+  ipcMain.handle("theme-profiles:import", async () => {
+    try {
+      const dialogParent = settingsWindow && !settingsWindow.isDestroyed()
+        ? settingsWindow
+        : BrowserWindow.getFocusedWindow();
+      const result = await dialog.showOpenDialog(dialogParent, {
+        title: "Import Theme Profile",
+        filters: [
+          {
+            name: "JSON Files",
+            extensions: ["json"]
+          }
+        ],
+        properties: ["openFile"]
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false };
+      }
+
+      const filePath = result.filePaths[0];
+
+      // Check file size (100KB limit to prevent DoS attacks)
+      const stats = fs.statSync(filePath);
+      const MAX_FILE_SIZE = 100 * 1024; // 100KB
+      if (stats.size > MAX_FILE_SIZE) {
+        return { success: false, error: "File too large. Maximum size is 100KB." };
+      }
+
+      const importedProfile = JSON.parse(
+        require("fs").readFileSync(filePath, "utf8")
+      );
+
+      // Validate imported profile structure
+      if (!importedProfile || typeof importedProfile !== "object" || Array.isArray(importedProfile)) {
+        return { success: false, error: "Invalid theme profile format" };
+      }
+
+      // Sanitize the imported profile to prevent prototype pollution and arbitrary property injection
+      const sanitizedProfile = sanitizeSettings(importedProfile);
+
+      const profileName = path.basename(filePath, ".json");
+      const profiles = settingsStore.loadProfiles();
+
+      profiles[profileName] = sanitizedProfile;
+      settingsStore.saveProfiles(profiles);
+
+      return {
+        success: true,
+        profileName
+      };
+    } catch (error) {
+      console.error("Failed to import theme profile:", error);
+      return { success: false, error: error.message };
+    }
   });
   
   ipcMain.handle("app:open-external", (_event, url) => {

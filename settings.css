@@ -829,3 +829,208 @@ input[type="range"]:active::-webkit-slider-thumb {
     background: rgba(0, 212, 255, 0.2);
     color: white;
 }
+
+/* ============================================
+   TOGGLE SWITCH — PREMIUM SLIDER
+   ============================================ */
+
+.switch-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-round {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-input);
+    transition: all var(--duration-normal) var(--ease-smooth);
+    border-radius: 24px;
+}
+
+.slider-round::before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: all var(--duration-normal) var(--ease-smooth);
+    border-radius: 50%;
+}
+
+.switch input:checked + .slider-round {
+    background-color: var(--accent-dim);
+    border-color: var(--border-focus);
+}
+
+.switch input:checked + .slider-round::before {
+    transform: translateX(20px);
+    background-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.switch input:focus + .slider-round {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+}
+
+/* ============================================
+   AURORA DRIFT ADVANCED VISUAL CUSTOMIZER
+   ============================================ */
+
+.aurora-tab-btn {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-smooth);
+    font-family: inherit;
+}
+
+.aurora-tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 212, 255, 0.2);
+}
+
+.aurora-tab-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--border-focus);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.15);
+}
+
+.aurora-tab-content {
+    display: none;
+}
+
+.aurora-tab-content.active-content {
+    display: block;
+    animation: fadeSlideIn var(--duration-normal) var(--ease-out);
+}
+
+/* Stop Marker styles */
+.aurora-stop-marker {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 8px rgba(255, 255, 255, 0.4);
+    cursor: grab;
+    top: 4px;
+    z-index: 10;
+    transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.aurora-stop-marker:hover {
+    transform: scale(1.25);
+    z-index: 20;
+}
+
+.aurora-stop-marker:active {
+    cursor: grabbing;
+}
+
+/* Hide and style delete button */
+.aurora-stop-delete {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: rgba(239, 68, 68, 0.9);
+    color: #ffffff;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--duration-fast) var(--ease-smooth), transform var(--duration-fast);
+}
+
+.aurora-stop-marker:hover .aurora-stop-delete {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+.aurora-stop-delete:hover {
+    background: #ef4444;
+    transform: translateX(-50%) scale(1.15) !important;
+}
+
+/* Preset card designs */
+.aurora-preset-card {
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.aurora-preset-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+.aurora-preset-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 212, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35), 0 0 15px rgba(0, 212, 255, 0.08);
+}
+
+.aurora-preset-card.selected {
+    border-color: var(--border-focus) !important;
+    background: var(--accent-dim) !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+}
+
+.aurora-preset-card.selected::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    border-radius: 2px;
+}
+

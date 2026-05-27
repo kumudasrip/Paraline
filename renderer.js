@@ -59,6 +59,11 @@ const {
   drawSideBraids
 } = window.ParalineSideBraids;
 
+const {
+  getAuroraDriftAudioMultiplier,
+  drawAuroraDrift
+} = window.ParalineAuroraDrift;
+
 const TARGET_FPS = 36;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
 const FLOW_TARGET_FPS = 60;
@@ -87,6 +92,7 @@ let flowTravelDistance = 0;
 let visualizerState = {
   selectedTheme: "ambientWave",
   performanceMode: "balanced",
+  fpsLimit: "default",
   ambientWave: {
     tone: "blue",
     sensitivity: "medium",
@@ -152,6 +158,51 @@ let visualizerState = {
     colorStyle: "cyanPink",
     flowDirection: "topDown"
   },
+  auroraDrift: {
+    auroraStyle: "cinematic",
+    intensity: "balanced",
+    height: "medium",
+    glowStrength: "medium",
+    motionSpeed: "balanced",
+    colorPalette: "cyanViolet",
+    audioReactivity: "balanced",
+    softness: "smooth",
+    layerDensity: "balanced",
+    gradientStops: [
+      { pos: 0.0, color: "#00e5ff" },
+      { pos: 0.35, color: "#0077ff" },
+      { pos: 0.7, color: "#7f00ff" },
+      { pos: 1.0, color: "#ff007f" }
+    ],
+    baseGlowRadius: 1.0,
+    peakGlowRadius: 1.0,
+    crestBrightness: 1.0,
+    bloomStrength: 1.0,
+    glowFalloff: 1.0,
+    primaryFrequency: 1.0,
+    secondaryFrequency: 1.0,
+    turbulenceComplexity: 1.0,
+    motionSmoothness: 1.0,
+    driftSpeed: 1.0,
+    bassInfluence: 1.0,
+    midInfluence: 1.0,
+    highShimmer: 1.0,
+    audioSmoothing: 1.0,
+    peakSensitivity: 1.0,
+    ribbonHeight: 1.0,
+    ribbonWidth: 1.0,
+    edgeSoftness: 1.0,
+    layerSeparation: 1.0,
+    crestSharpness: 1.0,
+    layerCount: 5,
+    backgroundHaze: 1.0,
+    foregroundHighlight: 1.0,
+    parallaxDepth: 1.0,
+    ambientOpacity: 1.0,
+    colorSaturation: 1.0,
+    atmosphericFade: 1.0,
+    edgeFeathering: 1.0
+  },
   paused: false
 };
 
@@ -198,6 +249,10 @@ function getSideBraidsSettings() {
   return visualizerState.sideBraids || {};
 }
 
+function getAuroraDriftSettings() {
+  return visualizerState.auroraDrift || {};
+}
+
 function getActiveAudioMultiplier() {
   if (visualizerState.selectedTheme === "reactiveBorder") {
     return getReactiveInputMultiplier(getReactiveBorderSettings());
@@ -233,6 +288,10 @@ function getActiveAudioMultiplier() {
 
   if (visualizerState.selectedTheme === "sideBraids") {
     return getSideBraidsAudioMultiplier(getSideBraidsSettings());
+  }
+
+  if (visualizerState.selectedTheme === "auroraDrift") {
+    return getAuroraDriftAudioMultiplier(getAuroraDriftSettings());
   }
 
   return getAmbientSensitivityMultiplier(getAmbientWaveSettings());
@@ -347,27 +406,38 @@ function renderFrame(now) {
     return;
   }
 
-  let activeFrameInterval = FRAME_INTERVAL;
+  let activeFrameInterval = 0;
+  const currentLimit = visualizerState.fpsLimit || "default";
 
-  if (visualizerState.selectedTheme === "flowBorder") {
-    activeFrameInterval = FLOW_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "dotParticles") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "rippleFlow") {
-    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "edgeCrystals") {
-    activeFrameInterval = PARTICLE_FRAME_INTERVAL;
-  } else if (visualizerState.selectedTheme === "sideBraids") {
-    activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+  if (currentLimit === "battery") {
+    activeFrameInterval = 1000 / 30; // Lock at 30 FPS Globally
+  } else if (currentLimit === "unlocked") {
+    activeFrameInterval = 0; // Unlocked / Native Monitor Refresh Rate
+  } else {
+    // default dynamic capped limits
+    activeFrameInterval = FRAME_INTERVAL;
+    if (visualizerState.selectedTheme === "flowBorder") {
+      activeFrameInterval = FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "dotParticles") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "rippleFlow") {
+      activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "snowBubbleParticles") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "edgeCrystals") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "sideBraids") {
+      activeFrameInterval = RIPPLE_FLOW_FRAME_INTERVAL;
+    } else if (visualizerState.selectedTheme === "auroraDrift") {
+      activeFrameInterval = PARTICLE_FRAME_INTERVAL;
+    }
   }
 
   if (lastFrameAt && now - lastFrameAt < activeFrameInterval) {
     return;
   }
 
-  const deltaMs = lastFrameAt ? now - lastFrameAt : activeFrameInterval;
+  const deltaMs = lastFrameAt ? now - lastFrameAt : (activeFrameInterval || 16.6);
   lastFrameAt = now;
 
   if (!visualizerState.paused) {
@@ -472,6 +542,16 @@ function renderFrame(now) {
       settings: getSideBraidsSettings(),
       performanceMode: visualizerState.performanceMode
     });
+  } else if (visualizerState.selectedTheme === "auroraDrift") {
+    drawAuroraDrift({
+      context,
+      width,
+      height,
+      time,
+      smoothedLevel,
+      settings: getAuroraDriftSettings(),
+      performanceMode: visualizerState.performanceMode
+    });
   } else {
     drawAmbientWave({
       context,
@@ -496,6 +576,7 @@ function applySettings(nextSettings) {
     ...visualizerState,
     ...nextSettings,
     performanceMode: nextSettings.performanceMode || visualizerState.performanceMode,
+    fpsLimit: nextSettings.fpsLimit || visualizerState.fpsLimit,
     ambientWave: {
       ...visualizerState.ambientWave,
       ...(nextSettings?.ambientWave || {})
@@ -535,10 +616,14 @@ function applySettings(nextSettings) {
     sideBraids: {
       ...visualizerState.sideBraids,
       ...(nextSettings?.sideBraids || {})
+    },
+    auroraDrift: {
+      ...visualizerState.auroraDrift,
+      ...(nextSettings?.auroraDrift || {})
     }
   };
 
-  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids"].includes(visualizerState.selectedTheme)) {
+  if (!["ambientWave", "reactiveBorder", "flowBorder", "sideBars", "flatRipples", "dotParticles", "rippleFlow", "snowBubbleParticles", "edgeCrystals", "sideBraids", "auroraDrift"].includes(visualizerState.selectedTheme)) {
     visualizerState.selectedTheme = "ambientWave";
   }
 
@@ -1049,6 +1134,95 @@ const THEME_INFOS = {
           { value: "soft", label: "Soft" },
           { value: "medium", label: "Medium" },
           { value: "strong", label: "Strong" }
+        ]
+      }
+    ]
+  },
+  auroraDrift: {
+    label: "Aurora Drift",
+    settingsHeader: "Aurora Drift Settings",
+    options: [
+      {
+        key: "auroraStyle",
+        label: "Aurora Style",
+        choices: [
+          { value: "ambient", label: "Ambient" },
+          { value: "cinematic", label: "Cinematic" },
+          { value: "energetic", label: "Energetic" }
+        ]
+      },
+      {
+        key: "intensity",
+        label: "Intensity",
+        choices: [
+          { value: "subtle", label: "Subtle" },
+          { value: "balanced", label: "Balanced" },
+          { value: "vivid", label: "Vivid" }
+        ]
+      },
+      {
+        key: "height",
+        label: "Height",
+        choices: [
+          { value: "low", label: "Low" },
+          { value: "medium", label: "Medium" },
+          { value: "tall", label: "Tall" }
+        ]
+      },
+      {
+        key: "glowStrength",
+        label: "Glow Strength",
+        choices: [
+          { value: "soft", label: "Soft" },
+          { value: "medium", label: "Medium" },
+          { value: "strong", label: "Strong" }
+        ]
+      },
+      {
+        key: "motionSpeed",
+        label: "Motion Speed",
+        choices: [
+          { value: "calm", label: "Calm" },
+          { value: "balanced", label: "Balanced" },
+          { value: "fast", label: "Fast" }
+        ]
+      },
+      {
+        key: "colorPalette",
+        label: "Color Palette",
+        choices: [
+          { value: "cyanViolet", label: "Cyan & Violet" },
+          { value: "emeraldSky", label: "Emerald Sky" },
+          { value: "sunsetDream", label: "Sunset Dream" },
+          { value: "frozenBlue", label: "Frozen Blue" },
+          { value: "monochrome", label: "Monochrome" }
+        ]
+      },
+      {
+        key: "audioReactivity",
+        label: "Audio Reactivity",
+        choices: [
+          { value: "subtle", label: "Subtle" },
+          { value: "balanced", label: "Balanced" },
+          { value: "responsive", label: "Responsive" }
+        ]
+      },
+      {
+        key: "softness",
+        label: "Softness",
+        choices: [
+          { value: "misty", label: "Misty" },
+          { value: "smooth", label: "Smooth" },
+          { value: "defined", label: "Defined" }
+        ]
+      },
+      {
+        key: "layerDensity",
+        label: "Layer Density",
+        choices: [
+          { value: "light", label: "Light" },
+          { value: "balanced", label: "Balanced" },
+          { value: "rich", label: "Rich" }
         ]
       }
     ]

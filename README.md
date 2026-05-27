@@ -230,6 +230,11 @@ Paraline is designed to stay running in the background without feeling heavy or 
 <td>Intertwined glowing neon strands braiding and flowing vertically along screen edges.</td>
 <td>Color Style, Braid Density, Motion Style, Glow Strength, Braid Width, Flow Direction</td>
 </tr>
+<tr>
+<td><strong>Aurora Drift</strong></td>
+<td>Cinematic aurora curtains rising from the bottom edge with layered folds and shimmer.</td>
+<td>Intensity, Turbulence, Glow, Speed, Layer Density</td>
+</tr>
 </table>
 
 ---
