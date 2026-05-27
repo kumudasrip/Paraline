@@ -16,6 +16,7 @@ let isHidden = false;
 let settingsStore;
 let visualizerSettings;
 let settingsWindow;
+let themeAgent;
 
 function createSettingsWindow() {
   if (settingsWindow) {
@@ -173,6 +174,10 @@ function updateSettings(nextSettings) {
 
   if (nextSettings.launchOnStartup !== undefined) {
     applyStartupSettings(visualizerSettings.launchOnStartup);
+  }
+
+  if (nextSettings.themeAutomation !== undefined && themeAgent) {
+    themeAgent.start();
   }
 
   sendVisualizerSettings();
@@ -1175,7 +1180,7 @@ app.whenReady().then(() => {
   applyStartupSettings(visualizerSettings.launchOnStartup);
 
 // --- NEW: Start Theme Automation Agent ---
-  const themeAgent = new ThemeAgent(settingsStore, (themeName) => {
+  themeAgent = new ThemeAgent(settingsStore, (themeName) => {
     updateSettings({ selectedTheme: themeName });
   });
   

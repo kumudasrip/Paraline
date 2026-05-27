@@ -193,6 +193,82 @@ document.addEventListener('DOMContentLoaded', () => {
         customSpeed.style.display = showSpeed ? 'block' : 'none';
     }
 
+    // ----------------------------------------
+    // THEME AUTOMATION AGENT BINDINGS
+    // ----------------------------------------
+    const enableThemeAutomation = document.getElementById('enableThemeAutomation');
+    const themeAutoControls = document.getElementById('themeAutoControls');
+    const intervalMinutes = document.getElementById('intervalMinutes');
+    const dayThemeSelect = document.getElementById('dayThemeSelect');
+    const nightThemeSelect = document.getElementById('nightThemeSelect');
+
+    function toggleAutoControls(isEnabled) {
+        if (themeAutoControls) {
+            themeAutoControls.style.display = isEnabled ? 'block' : 'none';
+        }
+    }
+
+    if (enableThemeAutomation) {
+        enableThemeAutomation.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            toggleAutoControls(isChecked);
+            if (window.visualizerSettings) {
+                const currentAutomation = cachedSettings.themeAutomation || {};
+                window.visualizerSettings.update({
+                    themeAutomation: {
+                        ...currentAutomation,
+                        enabled: isChecked
+                    }
+                });
+            }
+        });
+    }
+
+    if (intervalMinutes) {
+        intervalMinutes.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value, 10) || 30;
+            if (window.visualizerSettings) {
+                const currentAutomation = cachedSettings.themeAutomation || {};
+                window.visualizerSettings.update({
+                    themeAutomation: {
+                        ...currentAutomation,
+                        checkIntervalMinutes: val
+                    }
+                });
+            }
+        });
+    }
+
+    if (dayThemeSelect) {
+        dayThemeSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (window.visualizerSettings) {
+                const currentAutomation = cachedSettings.themeAutomation || {};
+                window.visualizerSettings.update({
+                    themeAutomation: {
+                        ...currentAutomation,
+                        dayTheme: val
+                    }
+                });
+            }
+        });
+    }
+
+    if (nightThemeSelect) {
+        nightThemeSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (window.visualizerSettings) {
+                const currentAutomation = cachedSettings.themeAutomation || {};
+                window.visualizerSettings.update({
+                    themeAutomation: {
+                        ...currentAutomation,
+                        nightTheme: val
+                    }
+                });
+            }
+        });
+    }
+
     const themeSelector = document.getElementById('theme-selector');
     themeSelector.addEventListener('change', (e) => {
         renderThemeSettings(e.target.value);
@@ -585,6 +661,24 @@ refreshThemeProfiles();
                     updateFpsOutcomeDisplay(settings.fpsLimit);
                 }
             }
+
+            // Load theme automation settings
+            if (settings.themeAutomation) {
+                const automation = settings.themeAutomation;
+                if (enableThemeAutomation) {
+                    enableThemeAutomation.checked = !!automation.enabled;
+                    toggleAutoControls(automation.enabled);
+                }
+                if (intervalMinutes) {
+                    intervalMinutes.value = automation.checkIntervalMinutes || 30;
+                }
+                if (dayThemeSelect) {
+                    dayThemeSelect.value = automation.dayTheme || "ambientWave";
+                }
+                if (nightThemeSelect) {
+                    nightThemeSelect.value = automation.nightTheme || "reactiveBorder";
+                }
+            }
             
             // set custom variables into UI if they exist globally or on the active theme
             if (settings.customColors && settings.customColors.length === 3) {
@@ -607,6 +701,26 @@ refreshThemeProfiles();
 
         // Realtime dynamic synchronization when toggled from the tray context menu
         window.visualizerSettings.onChange((nextSettings) => {
+            Object.assign(cachedSettings, nextSettings);
+            
+            // Sync theme automation properties if updated from outside
+            if (nextSettings.themeAutomation) {
+                const automation = nextSettings.themeAutomation;
+                if (enableThemeAutomation && automation.enabled !== undefined) {
+                    enableThemeAutomation.checked = !!automation.enabled;
+                    toggleAutoControls(automation.enabled);
+                }
+                if (intervalMinutes && automation.checkIntervalMinutes !== undefined) {
+                    intervalMinutes.value = automation.checkIntervalMinutes;
+                }
+                if (dayThemeSelect && automation.dayTheme !== undefined) {
+                    dayThemeSelect.value = automation.dayTheme;
+                }
+                if (nightThemeSelect && automation.nightTheme !== undefined) {
+                    nightThemeSelect.value = automation.nightTheme;
+                }
+            }
+
             if (nextSettings.paused !== undefined) {
                 updatePauseButtonState(nextSettings.paused);
             }
@@ -1188,55 +1302,3 @@ refreshThemeProfiles();
         });
     }
 });
-
-const enableThemeAutomation = document.getElementById('enableThemeAutomation');
-const themeAutoControls = document.getElementById('themeAutoControls');
-const intervalMinutes = document.getElementById('intervalMinutes');
-const dayThemeSelect = document.getElementById('dayThemeSelect');
-const nightThemeSelect = document.getElementById('nightThemeSelect');
-
-function toggleAutoControls(isEnabled) {
-    if (themeAutoControls) {
-        themeAutoControls.style.display = isEnabled ? 'block' : 'none';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-    // Note: If your preload uses window.electron instead of window.api, change it below
-    if (window.api && window.api.getSettings) {
-        const settings = await window.api.getSettings(); 
-        
-        if (enableThemeAutomation) {
-            enableThemeAutomation.checked = settings.enableThemeAutomation || false;
-            toggleAutoControls(enableThemeAutomation.checked);
-        }
-        if (intervalMinutes) intervalMinutes.value = settings.intervalMinutes || 30;
-        if (dayThemeSelect) dayThemeSelect.value = settings.dayTheme || 'ambientWave';
-        if (nightThemeSelect) nightThemeSelect.value = settings.nightTheme || 'ambientWave';
-    }
-});
-
-if (enableThemeAutomation) {
-    enableThemeAutomation.addEventListener('change', (e) => {
-        toggleAutoControls(e.target.checked);
-        window.api.updateSetting('enableThemeAutomation', e.target.checked);
-    });
-}
-
-if (intervalMinutes) {
-    intervalMinutes.addEventListener('change', (e) => {
-        window.api.updateSetting('intervalMinutes', parseInt(e.target.value, 10));
-    });
-}
-
-if (dayThemeSelect) {
-    dayThemeSelect.addEventListener('change', (e) => {
-        window.api.updateSetting('dayTheme', e.target.value);
-    });
-}
-
-if (nightThemeSelect) {
-    nightThemeSelect.addEventListener('change', (e) => {
-        window.api.updateSetting('nightTheme', e.target.value);
-    });
-}

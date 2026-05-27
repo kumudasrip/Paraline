@@ -41,13 +41,6 @@ class ThemeAgent {
       if (targetTheme && this.settingsStore.load().selectedTheme !== targetTheme) {
         console.log(`[ThemeAgent] Switching theme to: ${targetTheme}`); 
         this.applyThemeCallback(targetTheme);
-        try {
-          if (typeof sendVisualizerSettings === 'function') {
-              sendVisualizerSettings(); 
-          }
-        } catch (err) {
-            console.error('[ThemeAgent] Visualizer update failed:', err);
-        }
       }
     } catch (error) {
       console.error("ThemeAgent failed to evaluate time-based theme.", error);
