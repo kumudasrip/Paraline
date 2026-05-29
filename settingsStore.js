@@ -5,6 +5,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   launchOnStartup: false,
   selectedTheme: "ambientWave",
   colorMode: "manual",
+  customColors: Object.freeze(["#00f2fe", "#4facfe", "#8ee2ff"]),
   themeAutomation: Object.freeze({
     enabled: false,
     checkIntervalMinutes: 30, 
@@ -515,10 +516,15 @@ function sanitizeFocusMode(input = {}) {
 function sanitizeSettings(input = {}) {
   const source = migrateLegacySettings(input);
 
+  const customColors = Array.isArray(source.customColors) && source.customColors.length === 3
+    ? source.customColors
+    : DEFAULT_SETTINGS.customColors;
+
   return {
     launchOnStartup: typeof source.launchOnStartup === "boolean" ? source.launchOnStartup : DEFAULT_SETTINGS.launchOnStartup,
     selectedTheme: pick(source.selectedTheme, VALID_MAIN_THEMES, DEFAULT_SETTINGS.selectedTheme),
     colorMode: pick(source.colorMode, VALID_COLOR_MODES, DEFAULT_SETTINGS.colorMode),
+    customColors: customColors,
     themeAutomation: sanitizeThemeAutomation(source.themeAutomation),
     performanceMode: pick(source.performanceMode, VALID_PERFORMANCE_MODES, DEFAULT_SETTINGS.performanceMode),
     fpsLimit: pick(source.fpsLimit, VALID_FPS_LIMITS, DEFAULT_SETTINGS.fpsLimit),
