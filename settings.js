@@ -514,11 +514,11 @@ refreshThemeProfiles();
         const btnGithub = document.getElementById('btn-github');
         const btnUpdates = document.getElementById('btn-updates');
         const btnLanding = document.getElementById('btn-landing');
-        const btnResetTheme =document.getElementById('btn-reset-theme');
+        const btnResetTheme = document.getElementById('btn-reset-theme');
         if (btnResetTheme) {
             btnResetTheme.addEventListener('click', async () => {
                 if (confirm("Reset theme settings to default?")) {
-                    await window.paralineApp.resetThemeSettings();
+                    await window.paralineApp.resetActiveThemeSettings();
                     location.reload();
                 }
             });
