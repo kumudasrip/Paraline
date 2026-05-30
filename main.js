@@ -421,7 +421,25 @@ function resetAllSettings() {
   sendVisualizerSettings();
   refreshTrayMenu();
 }
+// Reserved JavaScript property names that must not be used as object keys.
+// Using these as keys on a plain object pollutes Object.prototype and affects
+// every plain object created in the same process for the rest of its lifetime.
+const RESERVED_PROFILE_NAMES = new Set(["__proto__", "constructor", "prototype"]);
+
+// Allowlist pattern: profile names may only contain letters, digits,
+// spaces, hyphens, underscores, and parentheses (max 64 chars).
+const SAFE_PROFILE_NAME_RE = /^[A-Za-z0-9 _\-()À-ɏ]{1,64}$/;
+
+function isValidProfileName(name) {
+  if (typeof name !== "string" || name.trim() === "") return false;
+  if (RESERVED_PROFILE_NAMES.has(name)) return false;
+  return SAFE_PROFILE_NAME_RE.test(name);
+}
+
 function saveThemeProfile(profileName) {
+  if (!isValidProfileName(profileName)) {
+    return null;
+  }
   const profiles = settingsStore.loadProfiles();
 
   profiles[profileName] = visualizerSettings;
@@ -1538,7 +1556,11 @@ app.whenReady().then(() => {
       // Sanitize the imported profile to prevent prototype pollution and arbitrary property injection
       const sanitizedProfile = sanitizeSettings(importedProfile);
 
-      const profileName = path.basename(filePath, ".json");
+      const rawProfileName = path.basename(filePath, ".json");
+      if (!isValidProfileName(rawProfileName)) {
+        return { success: false, error: "Invalid profile name: the filename contains reserved or disallowed characters." };
+      }
+      const profileName = rawProfileName;
       const profiles = settingsStore.loadProfiles();
 
       profiles[profileName] = sanitizedProfile;
