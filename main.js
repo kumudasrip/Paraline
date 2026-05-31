@@ -460,7 +460,21 @@ function getThemeProfiles() {
   return settingsStore.loadProfiles();
 }
 
+// Allowlist of URL schemes that may be passed to shell.openExternal.
+// Any other scheme (e.g. ms-settings:, file:, javascript:) is silently
+// rejected to prevent OS-level command execution via registered protocols.
+const ALLOWED_EXTERNAL_SCHEMES = new Set(["https:", "http:"]);
+
 function openExternalUrl(url) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return;
+  }
+  if (!ALLOWED_EXTERNAL_SCHEMES.has(parsed.protocol)) {
+    return;
+  }
   shell.openExternal(url).catch(() => {
     // Ignore shell open failures from tray actions.
   });
