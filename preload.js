@@ -55,7 +55,7 @@ contextBridge.exposeInMainWorld("visualizerSettings", {
     return ipcRenderer.invoke("visualizer-settings:get");
   },
   update(patch) {
-    ipcRenderer.send("visualizer-settings:update", patch);
+    return ipcRenderer.invoke("visualizer-settings:update", patch);
   },
   action(action, data) {
     ipcRenderer.send("visualizer-action", { action, data });

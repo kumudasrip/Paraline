@@ -450,6 +450,9 @@ function saveThemeProfile(profileName) {
 }
 
 function loadThemeProfile(profileName) {
+  if (!isValidProfileName(profileName)) {
+    return null;
+  }
   const profiles = settingsStore.loadProfiles();
 
   if (!profiles[profileName]) {
@@ -465,6 +468,9 @@ function loadThemeProfile(profileName) {
 }
 
 function deleteThemeProfile(profileName) {
+  if (!isValidProfileName(profileName)) {
+    return settingsStore.loadProfiles();
+  }
   const profiles = settingsStore.loadProfiles();
 
   delete profiles[profileName];
