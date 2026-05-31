@@ -3,7 +3,7 @@ import SectionReveal from "../SectionReveal";
 
 const githubUrl = "https://github.com/SamXop123/Paraline";
 
-export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadClick }) {
+export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadClick, setCurrentPage }) {
   return (
     <section id="download" className="px-6 pb-24 pt-8 sm:px-8 sm:pb-28">
       <SectionReveal className="mx-auto max-w-5xl">
@@ -45,6 +45,16 @@ export default function CTASection({ downloadUrl, isHostedInstaller, onDownloadC
                 </a>
               </div>
               <p className="text-xs uppercase tracking-[0.3em] text-white/42">Windows 10 / 11</p>
+              <p className="text-[11px] tracking-wide text-white/28 lg:text-right">
+                Requires 64-bit ·{" "}
+                <button
+                  onClick={() => setCurrentPage("system-requirements")}
+                  className="group inline-flex items-center gap-1 font-medium text-cyan-300/45 transition-colors duration-200 hover:text-cyan-300/80 bg-transparent border-none cursor-pointer p-0 text-[11px]"
+                >
+                  <span>Full Specs</span>
+                  <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
+                </button>
+              </p>
             </div>
           </div>
         </div>
