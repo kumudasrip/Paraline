@@ -109,18 +109,6 @@ export default function App() {
             </a>
 
             <div className="flex items-center gap-3">
-              {/* ── NEW: System Requirements nav link ── */}
-              <button
-                onClick={() => setCurrentPage("system-requirements")}
-                className={`text-[11px] uppercase tracking-[0.28em] transition hover:text-white ${
-                  currentPage === "system-requirements"
-                    ? "text-cyan-300/90"
-                    : "text-white/52"
-                }`}
-              >
-                Sys. Requirements
-              </button>
-
               <a
                 href={githubUrl}
                 target="_blank"
@@ -163,6 +151,7 @@ export default function App() {
                   downloadUrl={downloadUrl}
                   isHostedInstaller={isHostedInstaller}
                   onDownloadClick={() => trackDownloadClick("cta")}
+                  setCurrentPage={setCurrentPage}
                 />
               </section>
             </>
